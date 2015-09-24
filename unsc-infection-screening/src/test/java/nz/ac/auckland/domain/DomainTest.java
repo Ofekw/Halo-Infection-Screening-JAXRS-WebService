@@ -3,6 +3,8 @@ package nz.ac.auckland.domain;
 import static org.junit.Assert.assertEquals;
 
 import java.math.BigDecimal;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import javax.security.sasl.AuthorizeCallback;
@@ -12,10 +14,13 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import constants.Gender;
 import domain.Planet;
 import domain.Species;
 import domain.Address;
+import domain.Assessment;
 import domain.AssessmentCenter;
+import domain.Candidate;
 
 /**
  * Test class to illustrate the behaviour of JPA in generating relational 
@@ -99,6 +104,31 @@ public class DomainTest extends JpaTest {
 			 logger.debug(" With the address: " + a.getAssessmentCenterAddress().getAddress());
 		 }
 		
+		entityManager.getTransaction().commit();
+	}
+	
+	@Test
+	public void CandidateAndAssessmentTest(){
+		
+		entityManager.getTransaction().begin();
+		
+		Planet planet = new Planet("Biko", "ZENON-12","English/Chinese");
+		Species species = new Species("Humans", planet);
+		Address address = new Address("213423423 Rd Ave", planet, "Durban", "123-44");
+		
+		AssessmentCenter assCenter = new AssessmentCenter(true, address);
+		Candidate candidate = new Candidate("A259", "Carter", new Date(17374219200000l), Gender.MALE, species, address);
+		Assessment ass = new Assessment(true, true, assCenter, candidate, new Date(17374219200000l));
+		
+		entityManager.persist(candidate);
+		entityManager.persist(ass);
+		
+		List<Candidate> Candidates = entityManager.createQuery("select c from Candidate c").getResultList();
+		for(Candidate c : Candidates) {
+			 logger.debug("CandidateName: " + c.getFirstname() +" " +c.getLastname() +"; Sex: "+ c.getGender());
+//			 logger.debug("Tested on: " + c.getAssessments().get(0).getAssessmentDate() +" Is infected" +c.getAssessments().get(0).isInfected()); 
+
+		 }
 		entityManager.getTransaction().commit();
 	}
 	

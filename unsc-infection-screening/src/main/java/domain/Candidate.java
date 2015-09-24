@@ -16,16 +16,20 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.TableGenerator;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import org.hibernate.annotations.Cascade;
+
+import constants.DatabaseConstants;
 import constants.Gender;
 
 @Entity
@@ -34,7 +38,7 @@ public class Candidate {
 	public enum AddressType { HOME, SHIPPING, BILLING };
 	
     @Id 
-    @GeneratedValue(generator="ID_GENERATOR")
+    @GeneratedValue(generator=DatabaseConstants.ID_GENERATOR)
     private Long id;
 
     
@@ -49,7 +53,7 @@ public class Candidate {
     private Date dob;
     
     
-    @Column(name="DOD", nullable=false)
+    @Column(name="DOD", nullable=true)
     @Temporal( TemporalType.DATE)
     private Date dod;
     
@@ -57,25 +61,28 @@ public class Candidate {
     @Enumerated
     private Gender gender;
     
+    @ManyToOne(cascade= {CascadeType.PERSIST})
     @JoinColumn(name="ADDRESSID", nullable=false)
     private Address candidateAddress;
     
-    @ManyToOne
+    @ManyToOne(cascade= {CascadeType.PERSIST})
     @JoinColumn(name="SPECIESID", nullable=false)
-    private Species specie;
+    private Species species;
     
-//    @OneToMany(cascade = {CascadeType.PERSIST,CascadeType.REMOVE})
-//    @ElementCollection
-//    @CollectionTable(name="ASSESSMENT")
-//    private List<Assessment> assessments = new ArrayList<Assessment>();
+    @OneToMany(cascade = {CascadeType.PERSIST,CascadeType.REMOVE})
+    @ElementCollection
+    @CollectionTable(name="ASSESSMENT")
+    private List<Assessment> assessments = new ArrayList<Assessment>();
 
     protected Candidate() {}
     
-    public Candidate(String lastname, String firstname, Date dob, Gender gender) {
+    public Candidate(String lastname, String firstname, Date dob, Gender gender, Species species, Address address) {
     	this.lastname = lastname;
     	this.firstname = firstname;
     	this.dob = dob;
     	this.gender = gender;
+    	this.candidateAddress = address;
+    	this.species = species;
     	
     	
     }
@@ -129,21 +136,21 @@ public class Candidate {
 	}
 
 	public Species getSpecie() {
-		return specie;
+		return species;
 	}
 
 	public void setSpecie(Species specie) {
-		this.specie = specie;
+		this.species = specie;
 	}
 
-//	public List<Assessment> getAssessments() {
-//		return assessments;
-//	}
-//
-//	public void setAssessments(List<Assessment> assessments) {
-//		this.assessments = assessments;
-//	}
+	public List<Assessment> getAssessments() {
+		return assessments;
+	}
 
+	public void setAssessments(List<Assessment> assessments) {
+		this.assessments = assessments;
+	}
+	
 	public Long getId() {
 		return id;
 	}

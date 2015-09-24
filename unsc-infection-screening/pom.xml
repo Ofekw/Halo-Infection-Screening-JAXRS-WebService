@@ -44,13 +44,14 @@
 			<artifactId>hibernate-validator</artifactId>
 			<version>5.0.3.Final</version>
 		</dependency>
-		
+
 		<!-- Commons utilities. -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 			<version>3.4</version>
 		</dependency>
+
 	</dependencies>
 
 	<build>
