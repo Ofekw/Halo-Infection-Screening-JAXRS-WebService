@@ -62,11 +62,11 @@ public class Candidate {
     private Gender gender;
     
     @ManyToOne(cascade= {CascadeType.PERSIST})
-    @JoinColumn(name="ADDRESSID", nullable=false)
+    @JoinColumn(name="ADDRESSID", nullable=true)
     private Address candidateAddress;
     
     @ManyToOne(cascade= {CascadeType.PERSIST})
-    @JoinColumn(name="SPECIESID", nullable=false)
+    @JoinColumn(name="SPECIESID", nullable=true)
     private Species species;
     
     @OneToMany(cascade = {CascadeType.PERSIST,CascadeType.REMOVE})
@@ -76,12 +76,11 @@ public class Candidate {
 
     protected Candidate() {}
     
-    public Candidate(String lastname, String firstname, Date dob, Gender gender, Species species, Address address) {
+    public Candidate(String lastname, String firstname, Date dob, Gender gender, Species species) {
     	this.lastname = lastname;
     	this.firstname = firstname;
     	this.dob = dob;
     	this.gender = gender;
-    	this.candidateAddress = address;
     	this.species = species;
     	
     	

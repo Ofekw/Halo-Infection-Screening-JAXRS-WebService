@@ -14,6 +14,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import workers.CandidateWorker;
 import constants.Gender;
 import domain.Planet;
 import domain.Species;
@@ -35,7 +36,6 @@ import domain.Candidate;
  * @Test annotations on other tests. You can then use the H2 console to view 
  * the effect of the test of interest.
  * 
- * @author Ian Warren
  *
  */
 public class DomainTest extends JpaTest {
@@ -114,14 +114,16 @@ public class DomainTest extends JpaTest {
 		
 		Planet planet = new Planet("Biko", "ZENON-12","English/Chinese");
 		Species species = new Species("Humans", planet);
-		Address address = new Address("213423423 Rd Ave", planet, "Durban", "123-44");
+		Address address = new Address("435 Spartan Ave", planet, "Durban", "123-44");
 		
 		AssessmentCenter assCenter = new AssessmentCenter(true, address);
-		Candidate candidate = new Candidate("A259", "Carter", new Date(17374219200000l), Gender.MALE, species, address);
+		Candidate candidate = new Candidate("A259", "Carter", new Date(17374219200000l), Gender.MALE, species);
+		candidate.setCandidateAddress(address);
 		Assessment ass = new Assessment(true, true, assCenter, candidate, new Date(17374219200000l));
 		
 		entityManager.persist(candidate);
-		entityManager.persist(ass);
+		
+//		entityManager.persist(ass);
 		
 		List<Candidate> Candidates = entityManager.createQuery("select c from Candidate c").getResultList();
 		for(Candidate c : Candidates) {
@@ -130,6 +132,34 @@ public class DomainTest extends JpaTest {
 
 		 }
 		entityManager.getTransaction().commit();
+		
+		CandidateWorker cw = new CandidateWorker();
+		Address add = cw.getAddressById(candidate.getCandidateAddress().getId());
+		logger.debug(add.getAddress());
+	}
+	
+	
+	@Test
+	public void CandidateAddress(){
+		
+		entityManager.getTransaction().begin();
+		
+		CandidateWorker cw = new CandidateWorker();
+		
+		Planet planet = new Planet("Biko", "ZENON-12","English/Chinese");
+		Species species = new Species("Human", planet);
+		Address address = new Address("213423423 Rd Ave", planet, "Durban", "123-44");
+		Candidate candidate = new Candidate("A259", "Carter", new Date(17374219200000l), Gender.MALE, species);
+		candidate.setCandidateAddress(address);
+		
+		entityManager.persist(candidate);
+		entityManager.getTransaction().commit();
+		
+		Address add = cw.getAddressById(candidate.getCandidateAddress().getId());
+		Species sp = cw.getSpeciesByName("Human");
+		logger.debug(add.getAddress());
+		logger.debug((sp == null) ?  "Empty" : sp.getName());
+
 	}
 	
 //	@Test

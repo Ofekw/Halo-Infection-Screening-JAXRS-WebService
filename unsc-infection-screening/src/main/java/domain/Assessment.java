@@ -43,7 +43,7 @@ public class Assessment {
 	private boolean quarantined;
 
     @ManyToOne(cascade= {CascadeType.PERSIST})
-    @JoinColumn(name="ASSESSMENTCENTERID", nullable=false)
+    @JoinColumn(name="ASSESSMENTCENTER", nullable=false)
 	private AssessmentCenter assessmentCenter;
 
 	@ManyToOne
