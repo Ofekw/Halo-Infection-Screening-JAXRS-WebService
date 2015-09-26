@@ -34,7 +34,9 @@ import domain.Candidate;
 import domain.CandidateAssessment;
 import domain.Planet;
 import dto.CandidateDTO;
+import singleton.CandidateWorkerSingleton;
 import singleton.EntityManagerFactorySingleton;
+import workers.CandidateWorker;
 
 public class CandidateWebServiceTest{
 	private static final String WEB_SERVICE_URI = "http://localhost:8080/services/candidates";
@@ -45,16 +47,16 @@ public class CandidateWebServiceTest{
 	/**
 	 * One-time setup method that creates a Web service client.
 	 */
-	@BeforeClass
-	public static void setUpClient() {
+	@Before
+	public void setUpClient() {
 		client = ClientBuilder.newClient();
 	}
 
 	/**
 	 * One-time finalisation method that destroys the Web service client.
 	 */
-	@AfterClass
-	public static void destroyClient() {
+	@After
+	public void destroyClient() {
 //		Response response = client
 //				.target(WEB_SERVICE_URI).request()
 //				.delete();
@@ -122,28 +124,74 @@ public class CandidateWebServiceTest{
 		assertEquals(address.getPlanet(), fromService.getAddress().getPlanet());
 	}
 	
-//	@Test
-//	public void addCandidatewithAssessment() {
-//		
-//		// Query the Web service for the new existing candidate.
-//		Candidate fromService = client.target(CANDIDATE_URI).request()
-//				.accept("application/xml").get(Candidate.class);
-//		
-//		Planet planet = new Planet("Mars", "Milkyway","English");
-//		Address address = new Address("44-54", planet, "Durban", "123-44");
-//		address.setLatitude(-4511.23);
-//		address.setLongitude(125.521);
-//		
-//		AssessmentCenter assessmentCenter = new AssessmentCenter(true, address);
-//		
-//		CandidateAssessment assessment = new CandidateAssessment(true, true, assessmentCenter, fromService, new Date());
-//		
-//		Response response = client
-//				.target(CANDIDATE_URI+"/add/assessment").request()
-//				.post(Entity.xml(assessment));
-//		if (response.getStatus() != 201) {
-//			fail("Failed to add Address to existing Candidate");
-//		}
+	@SuppressWarnings("unchecked")
+	@Test
+	public void addCandidatewithAssessment() {
+		System.err.println(CANDIDATE_URI);	
+		
+		
+		Planet planet = new Planet("Mars", "Milkyway","English");
+		Address address = new Address("44-54", planet, "Durban", "123-44");
+		address.setLatitude(-4511.23);
+		address.setLongitude(125.521);
+		
+		AssessmentCenter assessmentCenter = new AssessmentCenter(true, address);
+		
+		CandidateAssessment assessment1 = new CandidateAssessment(false, false, assessmentCenter, new Date(18366260400000l));
+		CandidateAssessment assessment2 = new CandidateAssessment(true, true, assessmentCenter, new Date(18388036800000l));
+		
+		Response response = client
+				.target(CANDIDATE_URI+"/add/assessment").request()
+				.post(Entity.xml(assessment1));
+		if (response.getStatus() != 201) {
+			fail("Failed to add Address to existing Candidate");
+		}
+		
+		response.close();
+		
+		response = client
+				.target(CANDIDATE_URI+"/add/assessment").request()
+				.post(Entity.xml(assessment2));
+		if (response.getStatus() != 201) {
+			fail("Failed to add Address to existing Candidate");
+		}
+		
+		response.close();
+		
+		//get all assessments for a candidate
+		List<CandidateAssessment> fromService = client.target(CANDIDATE_URI+"/get/assessments/").request().accept("application/xml").get(new GenericType<List<CandidateAssessment>>( ){});
+		assertEquals(fromService.get(0).isInfected(), false);
+		assertEquals(fromService.get(0).isQuarantined(), false);
+		assertEquals(fromService.get(1).isInfected(), true);
+		assertEquals(fromService.get(1).isQuarantined(), true);
+		assertEquals(fromService.get(0).getAssessmentCenter(), assessmentCenter);
+		
+		//get singular persisted assessment from webservice directly
+		CandidateAssessment fromServiceAssessment = 
+				client.target(WEB_SERVICE_URI+"/get/assessment/"+fromService.get(0).getId()).request().accept("application/xml").get(CandidateAssessment.class);
 
-//	}
+		assertEquals(fromServiceAssessment.isInfected(), false);
+		assertEquals(fromServiceAssessment.isQuarantined(), false);
+	}
+	
+	@Test
+	public void updateCandidateDetails(){
+		
+		CandidateDTO fromService = client.target(CANDIDATE_URI).request().accept("application/xml").get(CandidateDTO.class);
+		
+		fromService.setDod(new Date(18388123200000l));
+		
+		Response response = client
+				.target(CANDIDATE_URI+"/update").request()
+				.post(Entity.xml(fromService));
+		if (response.getStatus() != 201) {
+			fail("Failed to update details of existing Candidate");
+		}
+		
+		response.close();
+		fromService = client.target(CANDIDATE_URI).request().accept("application/xml").get(CandidateDTO.class);
+		assertEquals(fromService.getDod(),new Date(18388123200000l));
+		
+	}
+	
 }

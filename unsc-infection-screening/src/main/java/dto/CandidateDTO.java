@@ -8,6 +8,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlID;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import constants.Gender;
@@ -43,9 +44,6 @@ public class CandidateDTO {
 	@XmlElement(name="Address")
 	private Address address;
 	
-	@XmlElement(name="Assessments")
-	private List<CandidateAssessment> assessments;
-	
 	protected CandidateDTO() {
 	}
 	
@@ -60,7 +58,6 @@ public class CandidateDTO {
 		this.dod = candidate.getDod();
 		this.species = candidate.getSpecies();
 		this.address = candidate.getAddress();
-		
 	}
 
 	public CandidateDTO(long id, String lastname, String firstname, Date dob, Gender gender, Species species) {
@@ -145,26 +142,6 @@ public class CandidateDTO {
 	public void setAddress(Address address) {
 		this.address = address;
 	}
-
-	public List<CandidateAssessment> getAssessments() {
-		return assessments;
-	}
-
-	public void setAssessments(List<CandidateAssessment> assessments) {
-		this.assessments = assessments;
-	}
-
-	public boolean isInfected() {
-		if (assessments.size() > 0){
-			for (CandidateAssessment assessments : assessments){
-				if (assessments.isInfected()){
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
 
 
 }

@@ -15,6 +15,8 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.Response;
 
 import org.slf4j.Logger;
@@ -63,6 +65,35 @@ public class CandidateResource {
 		return Response.created(URI.create("/candidates/" + candidate.getId()))
 				.build();
 	}
+	
+	/**
+	 * Updates an existing Candidate to the system.
+	 * @param CandidateDTO
+	 *            the Candidate data included in the HTTP request body.
+	 */
+	@POST
+	@Consumes("application/xml")
+	@Path("{id}/update")
+	public Response updateCandidate(@PathParam("id") long id, CandidateDTO dto) {
+		logger.debug("Read candidate: " + dto);
+		entityManager.getTransaction().begin();
+		//persist candidate
+		Candidate candidate = entityManager.find(Candidate.class, id);
+		if( candidate == null ) {
+			throw new WebApplicationException( 404 );}
+		candidate.updateCandidateDetails(dto);
+		entityManager.persist(candidate);
+		entityManager.getTransaction().commit();
+		entityManager.close();
+
+		
+		logger.debug("Created Candidate WITH NAME: " + candidate.getFirstname());
+		logger.debug("Created Candidate WITH ID: " + candidate.getId());
+		return Response.created(URI.create("/candidates/" + candidate.getId()))
+				.build();
+	}
+	
+	
 	/**
 	 * Adds an address to a candidate
 	 * @param dto
@@ -84,7 +115,7 @@ public class CandidateResource {
 		logger.debug("Update address for candidate WITH NAME: " + candidate.getFirstname());
 		logger.debug("The address WITH PROPERTIES: " + address.getId()+", "+address.getRoad()+", "+address.getCity()+", "+address.getCountry());
 		logger.debug("The address is ON PLANET: " + address.getPlanet().getName());
-		return Response.created(URI.create("/candidates/" + candidate.getId()))
+		return Response.created(URI.create("/candidates/address/" + candidate.getId()))
 				.build();
 	}
 	
@@ -95,6 +126,7 @@ public class CandidateResource {
 		logger.debug("Read candidate for updating address: " + id);
 		entityManager.getTransaction().begin();
 		Candidate candidate = entityManager.find(Candidate.class, id);
+		assessment.setCandidate(candidate);
 		candidate.addAssessment(assessment);
 		entityManager.persist(candidate);
 		entityManager.getTransaction().commit();
@@ -104,7 +136,7 @@ public class CandidateResource {
 		logger.debug("The assesment IS INFECTED: " + assessment.isInfected());
 		logger.debug("The assesment IS QUARANTINED: " + assessment.isQuarantined());
 		logger.debug("The candidate was ASSESSED ON: " + assessment.getAssessmentDate());
-		return Response.created(URI.create("/candidates/" + candidate.getId()))
+		return Response.created(URI.create("/candidates/assessment" + assessment.getId()))
 				.build();
 	}
 	
@@ -125,18 +157,41 @@ public class CandidateResource {
 	}
 	
 	@GET
-	@Path("{id}")
+	@Path("/get/assessment/{id}")
 	@Produces("application/xml")
-	public Candidate getCandidate(
+	public CandidateAssessment getAssessment(
 			@PathParam("id") long id) {
 		// Get the full Candidate object from the database.
 		entityManager.getTransaction().begin();
-		Candidate candidate = entityManager.find( Candidate.class, id);
-		logger.debug("Retrived Candidate WITH ID: " + candidate.getId());
+		CandidateAssessment assessment = entityManager.find(CandidateAssessment.class,id);
+		logger.debug("Retrived assessment WITH ID: " + assessment.getId());
 		entityManager.getTransaction().commit();
 		entityManager.close();
 		
-		return candidate;
+		return assessment;
+	}
+	
+	@GET
+	@Path("{id}/get/assessments")
+	@Produces("application/xml")
+	@SuppressWarnings("unchecked")
+	public GenericEntity<List<CandidateAssessment>> getAssessments(
+			@PathParam("id") long id) {
+		// Get the full Candidate object from the database.
+		entityManager.getTransaction().begin();
+		Candidate candidate = entityManager.find(Candidate.class, id);
+		List<CandidateAssessment> assessments = entityManager.createQuery("select a from CandidateAssessment a where a.candidate like :candidate")
+				.setParameter("candidate", candidate)
+				.getResultList();
+		
+		logger.debug("Retrived all assessment FOR CANDIDATE ID: " + id);
+		entityManager.getTransaction().commit();
+		entityManager.close();
+		
+		GenericEntity entity = new
+				GenericEntity<List<CandidateAssessment>> (assessments) { };
+		
+		return entity;
 	}
 	
 	

@@ -27,7 +27,9 @@ import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlIDREF;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -45,7 +47,8 @@ public class CandidateAssessment implements Comparable<CandidateAssessment> {
 	
     @Id 
     @GeneratedValue(generator=DatabaseConstants.ID_GENERATOR)
-    @XmlElement(name="id") Long id;
+    @XmlElement(name="id")
+    private Long id;
 
 	@Column(name="INFECTED", nullable =false, length=30)
 	@XmlElement(name="infected")
@@ -60,9 +63,9 @@ public class CandidateAssessment implements Comparable<CandidateAssessment> {
     @XmlElement(name="assessmentcenter")
 	private AssessmentCenter assessmentCenter;
     
-    @ManyToOne(fetch=FetchType.LAZY)
+    @ManyToOne(fetch=FetchType.EAGER)
     @JoinColumn(name="CANDIDATEID")
-    @XmlElement(name="candidate")
+    @XmlTransient
     Candidate candidate;
 
 
@@ -73,12 +76,10 @@ public class CandidateAssessment implements Comparable<CandidateAssessment> {
 
 	protected CandidateAssessment(){};
 
-	public CandidateAssessment(boolean infected, boolean quarantined, AssessmentCenter assessmentCenter,
-			Candidate candidate, Date assessmentDate) {
+	public CandidateAssessment(boolean infected, boolean quarantined, AssessmentCenter assessmentCenter,Date assessmentDate) {
 		this.infected = infected;
 		this.quarantined = quarantined;
 		this.assessmentCenter = assessmentCenter;
-		this.candidate = candidate;
 		this.date = assessmentDate;
 	}
 
@@ -160,6 +161,22 @@ public class CandidateAssessment implements Comparable<CandidateAssessment> {
 		buffer.append(candidate.getId());
 		
 		return buffer.toString();
+	}
+
+	public Candidate getCandidate() {
+		return candidate;
+	}
+
+	public void setCandidate(Candidate candidate) {
+		this.candidate = candidate;
+	}
+
+	public Date getDate() {
+		return date;
+	}
+
+	public void setDate(Date date) {
+		this.date = date;
 	}
 
 

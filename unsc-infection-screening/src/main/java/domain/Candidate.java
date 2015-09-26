@@ -2,33 +2,23 @@ package domain;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-import javax.persistence.AttributeOverride;
-import javax.persistence.AttributeOverrides;
 import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import javax.persistence.TableGenerator;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-
-import org.hibernate.annotations.Cascade;
+import javax.xml.bind.annotation.XmlTransient;
 
 import constants.DatabaseConstants;
 import constants.Gender;
@@ -70,7 +60,7 @@ public class Candidate {
     @Enumerated
     private Species species;
     
-    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    @OneToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     @CollectionTable(name="ASSESSMENTS")
     private List<CandidateAssessment> assessments = new ArrayList<CandidateAssessment>();
 
@@ -94,6 +84,15 @@ public class Candidate {
 		this.dod = candidateDTO.getDod();
 		this.species = candidateDTO.getSpecies();
 		this.address = candidateDTO.getAddress();
+	}
+	
+	public void updateCandidateDetails(CandidateDTO candidateDTO) {
+		this.lastname = candidateDTO.getLastname();
+		this.firstname = candidateDTO.getFirstname();
+		this.gender = candidateDTO.getGender();
+		this.dob = candidateDTO.getDob();
+		this.dod = candidateDTO.getDod();
+		this.species = candidateDTO.getSpecies();
 	}
 
 	public String getLastname() {

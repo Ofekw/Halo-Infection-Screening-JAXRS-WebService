@@ -76,7 +76,7 @@
 //		 List<AssessmentCenter> AssessmentCenters = entityManager.createQuery("select a from AssessmentCenter a").getResultList();
 //		 for(AssessmentCenter a : AssessmentCenters) {
 //			 logger.debug("AssesmentCenter: " + a.getId() +", quarantine capabilities: "+ a.getQuarantineCapability());
-//			 logger.debug(" With the address: " + a.getAssessmentCenterAddress().getAddress());
+//			 logger.debug(" With the address: " + a.getAssessmentCenterAddress().getRoad());
 //		 }
 //		
 //		entityManager.getTransaction().commit();
@@ -92,8 +92,8 @@
 //		
 //		AssessmentCenter assCenter = new AssessmentCenter(true, address);
 //		Candidate candidate = new Candidate("A259", "Carter", new Date(17374219200000l), Gender.MALE, Species.HUMAN);
-//		candidate.setCandidateAddress(address);
-//		CandidateAssessment assessment = new CandidateAssessment(true, true, assCenter, candidate, new Date(17374219200000l));
+//		candidate.setAddress(address);
+//		CandidateAssessment assessment = new CandidateAssessment(true, true, assCenter, new Date(17374219200000l));
 //		candidate.addAssessment(assessment);
 //		
 //		entityManager.persist(candidate);
@@ -125,7 +125,7 @@
 //		Planet planet = new Planet("Biko", "ZENON-12","English/Chinese");
 //		Address address = new Address("213423423 Rd Ave", planet, "Durban", "123-44");
 //		Candidate candidate = new Candidate("A259", "Sam", new Date(17374219200000l), Gender.MALE, Species.HUMAN);
-//		candidate.setCandidateAddress(address);
+//		candidate.setAddress(address);
 //		
 //		entityManager.persist(candidate);
 //		entityManager.getTransaction().commit();
