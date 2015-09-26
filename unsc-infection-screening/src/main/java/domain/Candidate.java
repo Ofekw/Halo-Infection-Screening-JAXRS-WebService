@@ -33,12 +33,11 @@ import org.hibernate.annotations.Cascade;
 import constants.DatabaseConstants;
 import constants.Gender;
 import constants.Species;
+import dto.CandidateDTO;
 
 @Entity
-@Table(name = "CANDIDATE") 
+@Table(name = "CANDIDATE")
 public class Candidate {
-	public enum AddressType { HOME, SHIPPING, BILLING };
-	
     @Id 
     @GeneratedValue(generator=DatabaseConstants.ID_GENERATOR)
     private Long id;
@@ -63,15 +62,15 @@ public class Candidate {
     @Enumerated
     private Gender gender;
     
-    @ManyToOne(cascade= {CascadeType.PERSIST})
+    @ManyToOne(cascade= {CascadeType.PERSIST, CascadeType.REMOVE})
     @JoinColumn(name="ADDRESSID", nullable=true)
-    private Address candidateAddress;
+    private Address address;
     
     @Column(name="SPECIES", nullable=false)
     @Enumerated
     private Species species;
     
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     @CollectionTable(name="ASSESSMENTS")
     private List<CandidateAssessment> assessments = new ArrayList<CandidateAssessment>();
 
@@ -86,6 +85,16 @@ public class Candidate {
     	
     	
     }
+
+	public Candidate(CandidateDTO candidateDTO) {
+		this.lastname = candidateDTO.getLastname();
+		this.firstname = candidateDTO.getFirstname();
+		this.gender = candidateDTO.getGender();
+		this.dob = candidateDTO.getDob();
+		this.dod = candidateDTO.getDod();
+		this.species = candidateDTO.getSpecies();
+		this.address = candidateDTO.getAddress();
+	}
 
 	public String getLastname() {
 		return lastname;
@@ -127,15 +136,15 @@ public class Candidate {
 		this.gender = gender;
 	}
 
-	public Address getCandidateAddress() {
-		return candidateAddress;
+	public Address getAddress() {
+		return address;
 	}
 
-	public void setCandidateAddress(Address candidateAddress) {
-		this.candidateAddress = candidateAddress;
+	public void setAddress(Address address) {
+		this.address = address;
 	}
 
-	public Species getSpecie() {
+	public Species getSpecies() {
 		return species;
 	}
 

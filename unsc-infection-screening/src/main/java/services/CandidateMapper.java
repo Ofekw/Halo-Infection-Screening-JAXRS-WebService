@@ -8,23 +8,12 @@ public class CandidateMapper {
 	
 
 	static Candidate toDomainModel(CandidateDTO candidateDTO) {
-		Candidate candidate = new Candidate(
-				candidateDTO.getLastname(), 
-				candidateDTO.getFirstname(), 
-				candidateDTO.getDob(),	
-				candidateDTO.getGender(),
-				candidateDTO.getSpecies());
+		Candidate candidate = new Candidate(candidateDTO);
 				return candidate;
 	}
 
 	static CandidateDTO toDto(Candidate candidate) {
-		CandidateDTO candidateDTO = new CandidateDTO(
-				candidate.getId(),
-				candidate.getLastname(), 
-				candidate.getFirstname(), 
-				candidate.getDob(),	
-				candidate.getGender(),
-				candidate.getSpecie());
+		CandidateDTO candidateDTO = new CandidateDTO(candidate);
 		return candidateDTO;
 
 	}

@@ -12,7 +12,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import constants.Gender;
 import constants.Species;
+import domain.Address;
 import domain.Candidate;
+import domain.CandidateAssessment;
 
 @XmlRootElement(name="candidate")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -39,35 +41,25 @@ public class CandidateDTO {
 	private Species species;
 	
 	@XmlElement(name="Address")
-	private long address;
+	private Address address;
 	
-//	@XmlElement(name="Assessments")
-//	private List<Assessment> assessments;
-	
-	@XmlElement(name="infected")
-	private boolean infected = false;
+	@XmlElement(name="Assessments")
+	private List<CandidateAssessment> assessments;
 	
 	protected CandidateDTO() {
 	}
 	
 	public CandidateDTO(Candidate candidate) {
+		
 		super();
-		this.id = candidate.getId() == null ? null : candidate.getId();
+		this.id = candidate.getId();
 		this.lastname = candidate.getLastname();
 		this.firstname = candidate.getFirstname();
 		this.gender = candidate.getGender();
 		this.dob = candidate.getDob();
 		this.dod = candidate.getDod();
-		this.species = candidate.getSpecie();
-		this.address = (candidate.getCandidateAddress() != null) ? candidate.getCandidateAddress().getId() : null;
-//		this.assessments = candidate.getAssessments();
-		
-//		for (Assessment ass : candidate.getAssessments()){
-//			if (ass.isInfected()){
-//				this.infected = true;
-//				break;
-//			}
-//		}
+		this.species = candidate.getSpecies();
+		this.address = candidate.getAddress();
 		
 	}
 
@@ -146,29 +138,33 @@ public class CandidateDTO {
 		this.species = species;
 	}
 
-	public long getAddress() {
+	public Address getAddress() {
 		return address;
 	}
 
-	public void setAddress(long address) {
+	public void setAddress(Address address) {
 		this.address = address;
 	}
 
-//	public List<Assessment> getAssessments() {
-//		return assessments;
-//	}
-//
-//	public void setAssessments(List<Assessment> assessments) {
-//		this.assessments = assessments;
-//	}
+	public List<CandidateAssessment> getAssessments() {
+		return assessments;
+	}
+
+	public void setAssessments(List<CandidateAssessment> assessments) {
+		this.assessments = assessments;
+	}
 
 	public boolean isInfected() {
-		return infected;
+		if (assessments.size() > 0){
+			for (CandidateAssessment assessments : assessments){
+				if (assessments.isInfected()){
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
-	public void setInfected(boolean infected) {
-		this.infected = infected;
-	}
 
 
 }

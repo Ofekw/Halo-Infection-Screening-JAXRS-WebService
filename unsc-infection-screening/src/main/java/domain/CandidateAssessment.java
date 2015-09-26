@@ -45,8 +45,7 @@ public class CandidateAssessment implements Comparable<CandidateAssessment> {
 	
     @Id 
     @GeneratedValue(generator=DatabaseConstants.ID_GENERATOR)
-    @XmlElement(name="id")
-    private Long id;
+    @XmlElement(name="id") Long id;
 
 	@Column(name="INFECTED", nullable =false, length=30)
 	@XmlElement(name="infected")
@@ -58,15 +57,18 @@ public class CandidateAssessment implements Comparable<CandidateAssessment> {
 
     @ManyToOne(cascade= {CascadeType.PERSIST})
     @JoinColumn(name="ASSESSMENTCENTERID", nullable=false)
+    @XmlElement(name="assessmentcenter")
 	private AssessmentCenter assessmentCenter;
     
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name="CANDIDATEID")
+    @XmlElement(name="candidate")
     Candidate candidate;
 
 
 	@Column(name="ASSESSMENTDATE", nullable=false)
-	@Temporal( TemporalType.DATE)
+	@Temporal(TemporalType.DATE)
+	@XmlElement(name="date")
 	private Date date;
 
 	protected CandidateAssessment(){};

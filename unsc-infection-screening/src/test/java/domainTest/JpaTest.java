@@ -128,7 +128,6 @@ public abstract class JpaTest {
 		}
 		rs.close();
 		for (String table : tables) {
-//			_logger.debug("Deleting content from " + table);
 			s.executeUpdate("DELETE FROM " + table);
 			if (dropTables) {
 				s.executeUpdate("DROP TABLE " + table);
