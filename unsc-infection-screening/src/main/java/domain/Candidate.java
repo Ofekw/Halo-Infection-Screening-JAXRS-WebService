@@ -31,6 +31,7 @@ import org.hibernate.annotations.Cascade;
 
 import constants.DatabaseConstants;
 import constants.Gender;
+import constants.Species;
 
 @Entity
 @Table(name = "CANDIDATE") 
@@ -65,14 +66,14 @@ public class Candidate {
     @JoinColumn(name="ADDRESSID", nullable=true)
     private Address candidateAddress;
     
-    @ManyToOne(cascade= {CascadeType.PERSIST})
-    @JoinColumn(name="SPECIESID", nullable=true)
+    @Column(name="SPECIES", nullable=false)
+    @Enumerated
     private Species species;
     
     @OneToMany(cascade = {CascadeType.PERSIST,CascadeType.REMOVE})
     @ElementCollection
-    @CollectionTable(name="ASSESSMENT")
-    private List<Assessment> assessments = new ArrayList<Assessment>();
+    @CollectionTable(name="CANDIDATEASSESSMENTS")
+    private List<CandidateAssessment> assessments = new ArrayList<CandidateAssessment>();
 
     protected Candidate() {}
     
@@ -142,11 +143,11 @@ public class Candidate {
 		this.species = specie;
 	}
 
-	public List<Assessment> getAssessments() {
+	public List<CandidateAssessment> getAssessments() {
 		return assessments;
 	}
 
-	public void setAssessments(List<Assessment> assessments) {
+	public void setAssessments(List<CandidateAssessment> assessments) {
 		this.assessments = assessments;
 	}
 	

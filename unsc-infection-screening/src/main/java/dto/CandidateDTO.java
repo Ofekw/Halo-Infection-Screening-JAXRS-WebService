@@ -11,6 +11,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import constants.Gender;
+import constants.Species;
 import domain.Candidate;
 
 @XmlRootElement(name="candidate")
@@ -35,7 +36,7 @@ public class CandidateDTO {
 	private Date dod;
 	
 	@XmlElement(name="Specices")
-	private String species;
+	private Species species;
 	
 	@XmlElement(name="Address")
 	private long address;
@@ -46,15 +47,18 @@ public class CandidateDTO {
 	@XmlElement(name="infected")
 	private boolean infected = false;
 	
+	protected CandidateDTO() {
+	}
+	
 	public CandidateDTO(Candidate candidate) {
 		super();
-		this.id = candidate.getId();
+		this.id = candidate.getId() == null ? null : candidate.getId();
 		this.lastname = candidate.getLastname();
 		this.firstname = candidate.getFirstname();
 		this.gender = candidate.getGender();
 		this.dob = candidate.getDob();
 		this.dod = candidate.getDod();
-		this.species = candidate.getSpecie().getName();
+		this.species = candidate.getSpecie();
 		this.address = (candidate.getCandidateAddress() != null) ? candidate.getCandidateAddress().getId() : null;
 //		this.assessments = candidate.getAssessments();
 		
@@ -67,7 +71,26 @@ public class CandidateDTO {
 		
 	}
 
-	public long getId() {
+	public CandidateDTO(long id, String lastname, String firstname, Date dob, Gender gender, Species species) {
+		super();
+		this.id = id;
+		this.lastname = lastname;
+		this.firstname = firstname;
+		this.gender = gender;
+		this.dob = dob;
+		this.species = species;
+	}
+	
+	public CandidateDTO(String lastname, String firstname, Date dob, Gender gender, Species species) {
+		super();
+		this.lastname = lastname;
+		this.firstname = firstname;
+		this.gender = gender;
+		this.dob = dob;
+		this.species = species;
+	}
+
+	public Long getId() {
 		return id;
 	}
 
@@ -115,11 +138,11 @@ public class CandidateDTO {
 		this.dod = dod;
 	}
 
-	public String getSpecies() {
+	public Species getSpecies() {
 		return species;
 	}
 
-	public void setSpecicie(String species) {
+	public void setSpecicie(Species species) {
 		this.species = species;
 	}
 

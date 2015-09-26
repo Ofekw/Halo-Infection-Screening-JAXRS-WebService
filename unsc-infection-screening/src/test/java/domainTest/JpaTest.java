@@ -1,4 +1,4 @@
-package nz.ac.auckland.domain;
+package domainTest;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class JpaTest {
 	
-	private static Logger _logger = LoggerFactory.getLogger(DomainTest.class);
+//	private static Logger _logger = LoggerFactory.getLogger(DomainTest.class);
 	
 	// JDBC connection to the database.
 	private static Connection _jdbcConnection = null;
@@ -128,7 +128,7 @@ public abstract class JpaTest {
 		}
 		rs.close();
 		for (String table : tables) {
-			_logger.debug("Deleting content from " + table);
+//			_logger.debug("Deleting content from " + table);
 			s.executeUpdate("DELETE FROM " + table);
 			if (dropTables) {
 				s.executeUpdate("DROP TABLE " + table);

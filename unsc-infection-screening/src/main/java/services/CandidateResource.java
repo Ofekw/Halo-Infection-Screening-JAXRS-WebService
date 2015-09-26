@@ -1,15 +1,10 @@
 package services;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -32,13 +27,13 @@ import dto.*;
  */
 @Path("/candidates")
 public class CandidateResource {
-	private static final Logger _logger = LoggerFactory.getLogger(CandidateResource.class);
+	private static final Logger logger = LoggerFactory.getLogger(CandidateResource.class);
+	private EntityManagerFactory factory;
+	private  EntityManager entityManager;
 	
-	private Map<Long, Candidate> candidateDB;
-	private AtomicLong idCounter;
-
 	public CandidateResource() {
-		reloadDatabase();
+		 factory = Persistence.createEntityManagerFactory("scratchPU");
+		 entityManager = factory.createEntityManager();
 	}
 
 	/**
@@ -58,35 +53,38 @@ public class CandidateResource {
 	@POST
 	@Consumes("application/xml")
 	public Response createCandidate(CandidateDTO dto) {
-		_logger.debug("Read candidate: " + dto);
+		logger.debug("Read candidate: " + dto);
+		entityManager.getTransaction().begin();
+		//persist candidate
 		Candidate candidate = CandidateMapper.toDomainModel(dto);
-		candidate.setId(idCounter.incrementAndGet());
-		candidateDB.put(candidate.getId(), candidate);
+		entityManager.persist(candidate);
+		entityManager.getTransaction().commit();
 
 		
-		_logger.debug("Created Candidate: " + candidate.getFirstname());
+		logger.debug("Created Candidate WITH NAME: " + candidate.getFirstname());
+		logger.debug("Created Candidate WITH ID: " + candidate.getId());
 		return Response.created(URI.create("/candidates/" + candidate.getId()))
 				.build();
+	}
+	
+	@GET
+	@Path("{id}")
+	@Produces("application/xml")
+	public CandidateDTO getParolee(
+			@PathParam("id") long id) {
+		// Get the full Candidate object from the database.
+		entityManager.getTransaction().begin();
+		Candidate candidate = entityManager.find( Candidate.class, id);
+		logger.debug("Retrived Candidate WITH ID: " + candidate.getId());
+		CandidateDTO dto = CandidateMapper.toDto(candidate);
+		entityManager.getTransaction().commit();
+		
+		return dto;
 	}
 
 	
 
 	protected void reloadDatabase() {
-//		candidateDB = new ConcurrentHashMap<Long, Candidate>();
-//		idCounter = new AtomicLong();
-//
-//		long id = idCounter.incrementAndGet();
-//		Address address = new Address("15", "Bermuda road", "St Johns", "Auckland", "1071");
-//		Parolee parolee = new Parolee(id,
-//				"Sinnen", 
-//				"Oliver", 
-//				Gender.MALE,
-//				new LocalDate(1970, 5, 26),
-//				address,
-//				new Curfew(address, new LocalTime(20, 00),new LocalTime(06, 30)));
-//		candidateDB.put(id, parolee);
-
-		
 		
 	}
 }

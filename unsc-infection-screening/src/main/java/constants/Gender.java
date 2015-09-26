@@ -19,7 +19,7 @@ public enum Gender {
 		return this.code;
 	}
 	
-	public String getGender(){
+	public String getString(){
 		return this.gender;
 	}
 
