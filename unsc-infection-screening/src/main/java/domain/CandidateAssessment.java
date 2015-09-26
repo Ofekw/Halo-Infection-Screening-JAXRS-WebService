@@ -11,6 +11,7 @@ import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
+import javax.persistence.Embeddable;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -23,36 +24,50 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import constants.DatabaseConstants;
 
 import javax.persistence.JoinColumn;
 
 @Entity
-public class CandidateAssessment {
-
-	@Id
-	@GeneratedValue(generator=DatabaseConstants.ID_GENERATOR)
-	private Long id;
-
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
+public class CandidateAssessment implements Comparable<CandidateAssessment> {
+	
+    @Id 
+    @GeneratedValue(generator=DatabaseConstants.ID_GENERATOR)
+    @XmlElement(name="id")
+    private Long id;
 
 	@Column(name="INFECTED", nullable =false, length=30)
+	@XmlElement(name="infected")
 	private boolean infected;
 
 	@Column(name="QUARANTINED", nullable =false, length=30)
+	@XmlElement(name="quarantined")
 	private boolean quarantined;
 
-//    @ManyToOne(cascade= {CascadeType.PERSIST})
-//    @JoinColumn(name="ASSESSMENTCENTERID", nullable=false)
-//	private AssessmentCenter assessmentCenter;
+    @ManyToOne(cascade= {CascadeType.PERSIST})
+    @JoinColumn(name="ASSESSMENTCENTERID", nullable=false)
+	private AssessmentCenter assessmentCenter;
+    
+    @ManyToOne(fetch=FetchType.LAZY)
+    @JoinColumn(name="CANDIDATEID")
+    Candidate candidate;
 
-	@ManyToOne
-	@JoinColumn(name="CANDIDATEID", nullable=false)
-	private Candidate candidate;
 
 	@Column(name="ASSESSMENTDATE", nullable=false)
 	@Temporal( TemporalType.DATE)
-	private Date assessmentDate;
+	private Date date;
 
 	protected CandidateAssessment(){};
 
@@ -60,9 +75,17 @@ public class CandidateAssessment {
 			Candidate candidate, Date assessmentDate) {
 		this.infected = infected;
 		this.quarantined = quarantined;
-//		this.assessmentCenter = assessmentCenter;
+		this.assessmentCenter = assessmentCenter;
 		this.candidate = candidate;
-		this.assessmentDate = assessmentDate;
+		this.date = assessmentDate;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
 	}
 
 	public boolean isInfected() {
@@ -80,34 +103,64 @@ public class CandidateAssessment {
 	public void setQuarantined(boolean quarantined) {
 		this.quarantined = quarantined;
 	}
-//
-//	public AssessmentCenter getAssessmentCenter() {
-//		return assessmentCenter;
-//	}
-//
-//	public void setAssessmentCenter(AssessmentCenter assessmentCenter) {
-//		this.assessmentCenter = assessmentCenter;
-//	}
 
-	public Candidate getCandidate() {
-		return candidate;
+	public AssessmentCenter getAssessmentCenter() {
+		return assessmentCenter;
 	}
 
-	public void setCandidate(Candidate candidate) {
-		this.candidate = candidate;
+	public void setAssessmentCenter(AssessmentCenter assessmentCenter) {
+		this.assessmentCenter = assessmentCenter;
 	}
 
 	public Date getAssessmentDate() {
-		return assessmentDate;
+		return date;
 	}
 
 	public void setAssessmentDate(Date assessmentDate) {
-		this.assessmentDate = assessmentDate;
+		this.date = assessmentDate;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof CandidateAssessment))
+            return false;
+        if (obj == this)
+            return true;
+
+        CandidateAssessment rhs = (CandidateAssessment) obj;
+        return new EqualsBuilder().
+            append(date, rhs.date).
+            append(infected, rhs.infected).
+            isEquals();
+	}
+	
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder(17, 31). 
+	            append(date).
+	            append(infected).
+	            toHashCode();
+	}
+	
+	@Override
+	public int compareTo(CandidateAssessment assessment) {
+		return date.compareTo(assessment.date);
+	}
+	
+	@Override
+	public String toString() {
+		
+		StringBuffer buffer = new StringBuffer();
+		
+		buffer.append(date.toString());
+		buffer.append(" @ ");
+		buffer.append( " on " );
+		buffer.append(candidate.getId());
+		
+		return buffer.toString();
 	}
 
-	public Long getId() {
-		return id;
-	}
+
 
 
 

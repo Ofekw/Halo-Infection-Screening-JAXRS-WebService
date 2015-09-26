@@ -15,6 +15,7 @@ import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -70,9 +71,8 @@ public class Candidate {
     @Enumerated
     private Species species;
     
-    @OneToMany(cascade = {CascadeType.PERSIST,CascadeType.REMOVE})
-    @ElementCollection
-    @CollectionTable(name="CANDIDATEASSESSMENTS")
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @CollectionTable(name="ASSESSMENTS")
     private List<CandidateAssessment> assessments = new ArrayList<CandidateAssessment>();
 
     protected Candidate() {}
@@ -149,6 +149,15 @@ public class Candidate {
 
 	public void setAssessments(List<CandidateAssessment> assessments) {
 		this.assessments = assessments;
+	}
+	
+
+	public void addAssessment(CandidateAssessment assessment) {
+		this.assessments.add(assessment);
+	}
+	
+	public void removeAssessment(CandidateAssessment assessment) {
+		this.assessments.remove(assessment);
 	}
 	
 	public Long getId() {

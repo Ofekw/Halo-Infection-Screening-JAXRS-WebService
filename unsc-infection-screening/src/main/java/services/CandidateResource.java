@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import domain.Candidate;
 
 import dto.*;
+import singleton.EntityManagerFactorySingleton;
 
 
 /**
@@ -28,12 +29,12 @@ import dto.*;
 @Path("/candidates")
 public class CandidateResource {
 	private static final Logger logger = LoggerFactory.getLogger(CandidateResource.class);
-	private EntityManagerFactory factory;
+	private EntityManagerFactory enityManagerFactory;
 	private  EntityManager entityManager;
 	
 	public CandidateResource() {
-		 factory = Persistence.createEntityManagerFactory("scratchPU");
-		 entityManager = factory.createEntityManager();
+		 enityManagerFactory = EntityManagerFactorySingleton.getInstance();
+		 entityManager = enityManagerFactory.createEntityManager();
 	}
 
 	/**
@@ -59,6 +60,7 @@ public class CandidateResource {
 		Candidate candidate = CandidateMapper.toDomainModel(dto);
 		entityManager.persist(candidate);
 		entityManager.getTransaction().commit();
+		entityManager.close();
 
 		
 		logger.debug("Created Candidate WITH NAME: " + candidate.getFirstname());
@@ -78,6 +80,7 @@ public class CandidateResource {
 		logger.debug("Retrived Candidate WITH ID: " + candidate.getId());
 		CandidateDTO dto = CandidateMapper.toDto(candidate);
 		entityManager.getTransaction().commit();
+		entityManager.close();
 		
 		return dto;
 	}

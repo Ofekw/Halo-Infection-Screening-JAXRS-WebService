@@ -3,6 +3,8 @@ package services;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 
+import singleton.EntityManagerFactorySingleton;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -16,9 +18,11 @@ public class WebApplication extends Application
    {
 	  // Register the Resources singleton to handle HTTP requests.
 	   CandidateResource cr = new CandidateResource();
-      singletons.add(cr);
+	   EntityManagerFactorySingleton emf = new EntityManagerFactorySingleton();
+      singletons.add(emf);
       
       // Register the ContextResolver class for JAXB.
+	  classes.add(cr.getClass());
       classes.add(CandidateResolver.class);
    }
 
