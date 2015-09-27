@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -18,6 +19,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.container.TimeoutHandler;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
@@ -100,6 +104,11 @@ public class CandidateResource {
 		return Response.created(URI.create("/candidates/" + candidate.getId()))
 				.build();
 	}
+	/**
+	 * Synchronously add a clinical status to a candidate
+	 * @param id
+	 * @param status
+	 */
 	
 	@PUT
 	@Consumes("application/xml")
@@ -114,10 +123,30 @@ public class CandidateResource {
 		entityManager.getTransaction().commit();
 		entityManager.close();
 
-
 		logger.debug("Added status for candidate WITH NAME: " + candidate.getFirstname());
-		logger.debug("The address WITH PROPERTIES: " + status.toString());
+		logger.debug("The status WITH PROPERTIES: " + status.toString());
 	}
+	
+	   @GET
+	   @Produces("application/xml")
+	   @Path("{id}/get/status")
+	   public void asyncGet(@Suspended final AsyncResponse asyncResponse) {
+		   logger.debug("I AM GETTING IN HERE");
+           asyncResponse.setTimeout(1000, TimeUnit.MILLISECONDS);
+           asyncResponse.setTimeoutHandler(new TimeoutHandler() {
+			@Override
+			public void handleTimeout(AsyncResponse ar) {
+				ar.resume(
+				           Response.status(Response.Status.SERVICE_UNAVAILABLE)
+				                   .entity("Operation timed out")
+				                   .build());
+			}
+		});
+
+
+           String result = "two";
+           asyncResponse.resume(result);
+       }
 
 
 	/**

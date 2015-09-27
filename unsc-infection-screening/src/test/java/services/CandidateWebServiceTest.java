@@ -21,6 +21,7 @@ import javax.persistence.EntityManager;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.InvocationCallback;
 
 import org.apache.http.util.EntityUtils;
 import org.joda.time.DateTime;
@@ -116,7 +117,6 @@ public class CandidateWebServiceTest{
 		Response response = client
 				.target(CANDIDATE_URI+"/add/status").request()
 				.put(Entity.xml(status));
-		System.err.println("STATUS: "+response.getStatus());
 		response.close();
 
 
@@ -125,6 +125,24 @@ public class CandidateWebServiceTest{
 				.accept("application/xml").get(CandidateDTO.class);
 		
 		assertEquals(fromService.getStatusLog().get(0), status);
+	}
+	
+//	@Test
+	public void asyncGetStatus(){
+		  client.target(CANDIDATE_URI+"/get/status").request().async()
+		  .get(new InvocationCallback<String>() {
+
+		@Override
+		public void failed(Throwable arg0) {
+			 System.err.println("SYNC FAILED: "+ arg0);
+			
+	}
+
+		@Override
+		public void completed(String arg0) {
+			 System.err.println("SYNC :"+arg0);
+		}
+  });
 	}
 	
 	
