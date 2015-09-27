@@ -7,6 +7,8 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
@@ -60,6 +62,10 @@ public class Candidate {
     @Enumerated
     private Species species;
     
+	@ElementCollection(fetch = FetchType.EAGER)
+	@CollectionTable(name="CANDIDATE_STATUS")
+	List<ClinicalStatus> statusLog = new ArrayList<ClinicalStatus>();
+    
     @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     @CollectionTable(name="ASSESSMENTS")
     private List<CandidateAssessment> assessments = new ArrayList<CandidateAssessment>();
@@ -87,12 +93,13 @@ public class Candidate {
 	}
 	
 	public void updateCandidateDetails(CandidateDTO candidateDTO) {
-		this.lastname = candidateDTO.getLastname();
-		this.firstname = candidateDTO.getFirstname();
-		this.gender = candidateDTO.getGender();
-		this.dob = candidateDTO.getDob();
-		this.dod = candidateDTO.getDod();
-		this.species = candidateDTO.getSpecies();
+		this.lastname = (candidateDTO.getLastname() != null) ? candidateDTO.getLastname() : lastname;
+		this.firstname = (candidateDTO.getFirstname()!= null) ? candidateDTO.getFirstname() : firstname;
+		this.gender = (candidateDTO.getGender()!= null) ? candidateDTO.getGender() : gender;
+		this.dob = (candidateDTO.getDob()!= null) ? candidateDTO.getDob() : dob;
+		this.dod = (candidateDTO.getDod()!= null) ? candidateDTO.getDod() : dod;
+		this.species = (candidateDTO.getSpecies()!= null ? candidateDTO.getSpecies() : species);
+		this.statusLog = (candidateDTO.getStatusLog()!= null ? candidateDTO.getStatusLog() : statusLog);
 	}
 
 	public String getLastname() {
@@ -175,6 +182,26 @@ public class Candidate {
 	public void setId(long id) {
 		this.id = id;
 		
+	}
+
+	public List<ClinicalStatus> getStatusLog() {
+		return statusLog;
+	}
+
+	public void setStatusLog(List<ClinicalStatus> statusLog) {
+		this.statusLog = statusLog;
+	}
+	
+	public void addStatus(ClinicalStatus clinicalStatus){
+		statusLog.add(clinicalStatus);
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public void setSpecies(Species species) {
+		this.species = species;
 	}
     
    

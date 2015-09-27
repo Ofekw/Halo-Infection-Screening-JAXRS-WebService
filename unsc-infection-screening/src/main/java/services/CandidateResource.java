@@ -31,6 +31,7 @@ import domain.Address;
 import domain.AssessmentCenter;
 import domain.Candidate;
 import domain.CandidateAssessment;
+import domain.ClinicalStatus;
 import domain.Planet;
 import dto.*;
 import singleton.EntityManagerFactorySingleton;
@@ -98,6 +99,24 @@ public class CandidateResource {
 		logger.debug("Created Candidate WITH ID: " + candidate.getId());
 		return Response.created(URI.create("/candidates/" + candidate.getId()))
 				.build();
+	}
+	
+	@PUT
+	@Consumes("application/xml")
+	@Path("{id}/add/status")
+	public void addStatus(@PathParam("id") long id, ClinicalStatus status){
+		logger.debug("Read candidate for adding status: " + id);
+		entityManager.getTransaction().begin();
+		Candidate candidate = entityManager.find( Candidate.class, id);
+		candidate.addStatus(status);
+		entityManager.persist(candidate);
+		logger.debug("Status details: " + status.toString());
+		entityManager.getTransaction().commit();
+		entityManager.close();
+
+
+		logger.debug("Added status for candidate WITH NAME: " + candidate.getFirstname());
+		logger.debug("The address WITH PROPERTIES: " + status.toString());
 	}
 
 

@@ -16,6 +16,7 @@ import constants.Species;
 import domain.Address;
 import domain.Candidate;
 import domain.CandidateAssessment;
+import domain.ClinicalStatus;
 
 @XmlRootElement(name="candidate")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -38,11 +39,14 @@ public class CandidateDTO {
 	@XmlElement(name="DOD")
 	private Date dod;
 	
-	@XmlElement(name="Specices")
+	@XmlElement(name="specices")
 	private Species species;
 	
-	@XmlElement(name="Address")
+	@XmlElement(name="address")
 	private Address address;
+	
+	@XmlElement(name="status")
+	private List<ClinicalStatus> statusLog;
 	
 	protected CandidateDTO() {
 	}
@@ -58,6 +62,7 @@ public class CandidateDTO {
 		this.dod = candidate.getDod();
 		this.species = candidate.getSpecies();
 		this.address = candidate.getAddress();
+		this.statusLog = candidate.getStatusLog();
 	}
 
 	public CandidateDTO(long id, String lastname, String firstname, Date dob, Gender gender, Species species) {
@@ -141,6 +146,22 @@ public class CandidateDTO {
 
 	public void setAddress(Address address) {
 		this.address = address;
+	}
+
+	public List<ClinicalStatus> getStatusLog() {
+		return statusLog;
+	}
+
+	public void setStatusLog(List<ClinicalStatus> statusLog) {
+		this.statusLog = statusLog;
+	}
+
+	public void addStatus(ClinicalStatus clinicalStatus){
+		statusLog.add(clinicalStatus);
+	}
+	
+	public void setSpecies(Species species) {
+		this.species = species;
 	}
 
 

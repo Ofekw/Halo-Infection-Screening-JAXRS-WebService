@@ -23,16 +23,19 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 
 import org.apache.http.util.EntityUtils;
+import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import constants.Stability;
 import domain.Address;
 import domain.AssessmentCenter;
 import domain.Candidate;
 import domain.CandidateAssessment;
+import domain.ClinicalStatus;
 import domain.Planet;
 import dto.CandidateDTO;
 import singleton.CandidateWorkerSingleton;
@@ -80,7 +83,6 @@ public class CandidateWebServiceTest{
 	@Test
 	public void addCandidate() {
 		CandidateDTO dto = new CandidateDTO("117", "John", new Date(17374219200000l), constants.Gender.MALE, constants.Species.HUMAN);
-		
 		Response response = client
 				.target(WEB_SERVICE_URI).request()
 				.post(Entity.xml(dto));
@@ -108,9 +110,26 @@ public class CandidateWebServiceTest{
 		}
 	}
 	
+	@Test
+	public void addAndRetrieveStatus(){
+		ClinicalStatus status = new ClinicalStatus(Stability.STABLE, new DateTime());
+		Response response = client
+				.target(CANDIDATE_URI+"/add/status").request()
+				.put(Entity.xml(status));
+		System.err.println("STATUS: "+response.getStatus());
+		response.close();
+
+
+		// Query the Web service for the new Candidate.
+		CandidateDTO fromService = client.target(CANDIDATE_URI).request()
+				.accept("application/xml").get(CandidateDTO.class);
+		
+		assertEquals(fromService.getStatusLog().get(0), status);
+	}
+	
 	
 	@Test
-	public void addCandidateWithAddress() {
+	public void addAndRetrieveCandidateWithAddress() {
 
 		Planet planet = new Planet("Biko", "ZENON-12","English/Chinese");
 		Address address = new Address("213423423 Rd Ave", planet, "Durban", "123-44");
@@ -144,15 +163,18 @@ public class CandidateWebServiceTest{
 		System.err.println(CANDIDATE_URI);	
 		
 		
-		Planet planet = new Planet("Mars", "Milkyway","English");
-		Address address = new Address("44-54", planet, "Durban", "123-44");
-		address.setLatitude(-4511.23);
-		address.setLongitude(125.521);
+		Planet planet1 = new Planet("Mars", "Milkyway","English");
+		Address address1 = new Address("44-54", planet1, "Durban", "123-44");
+		address1.setLatitude(-4511.23);
+		address1.setLongitude(125.521);
+		AssessmentCenter assessmentCenter1 = new AssessmentCenter(true, address1);
+		CandidateAssessment assessment1 = new CandidateAssessment(false, false, assessmentCenter1, new Date(18366260400000l));
 		
-		AssessmentCenter assessmentCenter = new AssessmentCenter(true, address);
 		
-		CandidateAssessment assessment1 = new CandidateAssessment(false, false, assessmentCenter, new Date(18366260400000l));
-		CandidateAssessment assessment2 = new CandidateAssessment(true, true, assessmentCenter, new Date(18388036800000l));
+		Planet planet2 = new Planet("Reach", "Epsilon Eridani system,","English");
+		Address address2 = new Address("22 Tsavo Highland", planet2, "ONI Site Alpha", "788883");
+		AssessmentCenter assessmentCenter2 = new AssessmentCenter(true, address2);
+		CandidateAssessment assessment2 = new CandidateAssessment(true, true, assessmentCenter2, new Date(18388036800000l));
 		
 		Response response = client
 				.target(CANDIDATE_URI+"/add/assessment").request()
@@ -178,7 +200,8 @@ public class CandidateWebServiceTest{
 		assertEquals(fromService.get(0).isQuarantined(), false);
 		assertEquals(fromService.get(1).isInfected(), true);
 		assertEquals(fromService.get(1).isQuarantined(), true);
-		assertEquals(fromService.get(0).getAssessmentCenter(), assessmentCenter);
+		assertEquals(fromService.get(0).getAssessmentCenter(), assessmentCenter1);
+		assertEquals(fromService.get(1).getAssessmentCenter(), assessmentCenter2);
 		
 		//get singular persisted assessment from webservice directly
 		CandidateAssessment fromServiceAssessment = 
