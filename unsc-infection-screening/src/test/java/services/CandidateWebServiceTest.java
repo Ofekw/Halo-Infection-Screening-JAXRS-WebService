@@ -43,6 +43,7 @@ public class CandidateWebServiceTest{
 	private static String CANDIDATE_URI;
 
 	private static Client client;
+	public static boolean DELETE_ALL = true;
 
 	/**
 	 * One-time setup method that creates a Web service client.
@@ -57,12 +58,19 @@ public class CandidateWebServiceTest{
 	 */
 	@After
 	public void destroyClient() {
-//		Response response = client
-//				.target(WEB_SERVICE_URI).request()
-//				.delete();
-//		response.close();
-		
 		client.close();
+	}
+	
+	@AfterClass
+	public static void deleteAllData() {
+		if(DELETE_ALL ){
+			client = ClientBuilder.newClient();
+			Response response = client
+					.target(WEB_SERVICE_URI+"/all/delete").request()
+					.delete();
+			response.close();
+			client.close();
+		}
 	}
 
 	/**
@@ -104,7 +112,7 @@ public class CandidateWebServiceTest{
 		System.err.println(CANDIDATE_URI);
 		
 		Response response = client
-				.target(CANDIDATE_URI+"/address").request()
+				.target(CANDIDATE_URI+"/add/address").request()
 				.post(Entity.xml(address));
 		if (response.getStatus() != 201) {
 			fail("Failed to add Address to existing Candidate");
@@ -191,6 +199,34 @@ public class CandidateWebServiceTest{
 		response.close();
 		fromService = client.target(CANDIDATE_URI).request().accept("application/xml").get(CandidateDTO.class);
 		assertEquals(fromService.getDod(),new Date(18388123200000l));
+		
+	}
+	
+//	@Test
+	public void getAllCandidates(){
+		CandidateDTO dto1 = new CandidateDTO("Holbrok", "Linda", new Date(17374219502345l), constants.Gender.FEMALE, constants.Species.HUMAN);
+		CandidateDTO dto2 = new CandidateDTO("117", "Carter", new Date(17374219502345l), constants.Gender.MALE, constants.Species.SHENGHELI);
+
+		Response response = client
+				.target(WEB_SERVICE_URI).request()
+				.post(Entity.xml(dto1));
+		if (response.getStatus() != 201) {
+			fail("Failed to create new Candidate");
+		}
+		response.close();
+		
+		response = client
+				.target(WEB_SERVICE_URI).request()
+				.post(Entity.xml(dto2));
+		if (response.getStatus() != 201) {
+			fail("Failed to create new Candidate");
+		}
+		response.close();
+		
+		List<CandidateDTO> fromServiceCandidates = 
+				client.target(WEB_SERVICE_URI+"/get/all/candidates/").request().accept("application/xml").get(new GenericType<List<CandidateDTO>>( ){});
+		assertTrue(fromServiceCandidates.size() > 2 );
+		
 		
 	}
 	

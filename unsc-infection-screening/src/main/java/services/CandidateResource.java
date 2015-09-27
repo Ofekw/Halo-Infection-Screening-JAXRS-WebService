@@ -2,6 +2,7 @@ package services;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -23,8 +24,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import domain.Address;
+import domain.AssessmentCenter;
 import domain.Candidate;
 import domain.CandidateAssessment;
+import domain.Planet;
 import dto.*;
 import singleton.EntityManagerFactorySingleton;
 
@@ -37,10 +40,10 @@ public class CandidateResource {
 	private static final Logger logger = LoggerFactory.getLogger(CandidateResource.class);
 	private EntityManagerFactory enityManagerFactory;
 	private  EntityManager entityManager;
-	
+
 	public CandidateResource() {
-		 enityManagerFactory = EntityManagerFactorySingleton.getInstance();
-		 entityManager = enityManagerFactory.createEntityManager();
+		enityManagerFactory = EntityManagerFactorySingleton.getInstance();
+		entityManager = enityManagerFactory.createEntityManager();
 	}
 
 	/**
@@ -59,13 +62,13 @@ public class CandidateResource {
 		entityManager.getTransaction().commit();
 		entityManager.close();
 
-		
+
 		logger.debug("Created Candidate WITH NAME: " + candidate.getFirstname());
 		logger.debug("Created Candidate WITH ID: " + candidate.getId());
 		return Response.created(URI.create("/candidates/" + candidate.getId()))
 				.build();
 	}
-	
+
 	/**
 	 * Updates an existing Candidate to the system.
 	 * @param CandidateDTO
@@ -86,22 +89,22 @@ public class CandidateResource {
 		entityManager.getTransaction().commit();
 		entityManager.close();
 
-		
+
 		logger.debug("Created Candidate WITH NAME: " + candidate.getFirstname());
 		logger.debug("Created Candidate WITH ID: " + candidate.getId());
 		return Response.created(URI.create("/candidates/" + candidate.getId()))
 				.build();
 	}
-	
-	
+
+
 	/**
 	 * Adds an address to a candidate
 	 * @param dto
 	 */
-	
+
 	@POST
 	@Consumes("application/xml")
-	@Path("{id}/address")
+	@Path("{id}/add/address")
 	public Response setAddress(@PathParam("id") long id, Address address){
 		logger.debug("Read candidate for updating address: " + id);
 		entityManager.getTransaction().begin();
@@ -111,18 +114,18 @@ public class CandidateResource {
 		entityManager.getTransaction().commit();
 		entityManager.close();
 
-		
+
 		logger.debug("Update address for candidate WITH NAME: " + candidate.getFirstname());
 		logger.debug("The address WITH PROPERTIES: " + address.getId()+", "+address.getRoad()+", "+address.getCity()+", "+address.getCountry());
 		logger.debug("The address is ON PLANET: " + address.getPlanet().getName());
 		return Response.created(URI.create("/candidates/address/" + candidate.getId()))
 				.build();
 	}
-	
+
 	@POST
 	@Consumes("application/xml")
 	@Path("{id}/add/assessment")
-	public Response setAddress(@PathParam("id") long id, CandidateAssessment assessment){
+	public Response setAssessment(@PathParam("id") long id, CandidateAssessment assessment){
 		logger.debug("Read candidate for updating address: " + id);
 		entityManager.getTransaction().begin();
 		Candidate candidate = entityManager.find(Candidate.class, id);
@@ -139,7 +142,7 @@ public class CandidateResource {
 		return Response.created(URI.create("/candidates/assessment" + assessment.getId()))
 				.build();
 	}
-	
+
 	@GET
 	@Path("{id}")
 	@Produces("application/xml")
@@ -152,10 +155,10 @@ public class CandidateResource {
 		CandidateDTO dto = CandidateMapper.toDto(candidate);
 		entityManager.getTransaction().commit();
 		entityManager.close();
-		
+
 		return dto;
 	}
-	
+
 	@GET
 	@Path("/get/assessment/{id}")
 	@Produces("application/xml")
@@ -167,47 +170,94 @@ public class CandidateResource {
 		logger.debug("Retrived assessment WITH ID: " + assessment.getId());
 		entityManager.getTransaction().commit();
 		entityManager.close();
-		
+
 		return assessment;
 	}
-	
+
 	@GET
 	@Path("{id}/get/assessments")
 	@Produces("application/xml")
 	@SuppressWarnings("unchecked")
 	public GenericEntity<List<CandidateAssessment>> getAssessments(
 			@PathParam("id") long id) {
-		// Get the full Candidate object from the database.
+		// Get the assessments for specified candidate object from the database.
 		entityManager.getTransaction().begin();
 		Candidate candidate = entityManager.find(Candidate.class, id);
 		List<CandidateAssessment> assessments = entityManager.createQuery("select a from CandidateAssessment a where a.candidate like :candidate")
 				.setParameter("candidate", candidate)
 				.getResultList();
-		
+
 		logger.debug("Retrived all assessment FOR CANDIDATE ID: " + id);
 		entityManager.getTransaction().commit();
 		entityManager.close();
-		
+
 		GenericEntity entity = new
 				GenericEntity<List<CandidateAssessment>> (assessments) { };
-		
-		return entity;
+
+				return entity;
 	}
 	
 	
-	
-	
-	@DELETE
-	public void wipeAll() {
-		logger.debug("WIPING DATA");
+	@GET
+	@Path("/get/all/candidates")
+	@Produces("application/xml")
+	@SuppressWarnings("unchecked")
+	public GenericEntity<List<CandidateDTO>> getCandidates() {
+		// Get the all Candidate object from the database.
 		entityManager.getTransaction().begin();
-		int rs = entityManager.createQuery("delete from Candidate").executeUpdate();
-		logger.debug("Removed Candidates: "+ rs);
-	}
-
-	
-
-	protected void reloadDatabase() {
+		List<Candidate> candidates = entityManager.createQuery("select c from Candidates c").getResultList();
 		
+		List<CandidateDTO> candidatesDTO = new LinkedList<CandidateDTO>();
+		
+		for (Candidate c : candidates){
+			candidatesDTO.add(CandidateMapper.toDto(c));
+		}
+		
+		logger.debug("Retrived candidates");
+		entityManager.getTransaction().commit();
+		entityManager.close();
+		GenericEntity<List<CandidateDTO>> entity = new
+				GenericEntity<List<CandidateDTO>> (candidatesDTO) { };
+
+				return entity;
 	}
+
+
+
+	//Used for test perpuoses only
+	@DELETE
+	@Path("all/delete")
+	public void wipeAll() {
+		if(CandidateWebServiceTest.DELETE_ALL){
+			logger.debug("WIPING DATA");
+			entityManager.getTransaction().begin();
+			List<Candidate> candidates = entityManager.createQuery("select c from Candidate c").getResultList();
+			for(Candidate c : candidates){
+				logger.debug("Removing Candidate: "+ c.getId());
+				entityManager.remove(c);
+			}
+
+			List<AssessmentCenter> assesmentCenters = entityManager.createQuery("select ac from AssessmentCenter ac").getResultList();
+			for(AssessmentCenter ac : assesmentCenters){
+				logger.debug("Removing Assessment Center: "+ ac.getId());
+				entityManager.remove(ac);
+			}
+
+			List<Address> addresses= entityManager.createQuery("select ad from Address ad").getResultList();
+			for( Address ad : addresses){
+				logger.debug("Removing Address: "+ ad.getId());
+				entityManager.remove(ad);
+			}
+
+			List<Planet> planets= entityManager.createQuery("select p from Planet p").getResultList();
+			for(Planet p : planets){
+				logger.debug("Removing planet: "+ p.getId());
+				entityManager.remove(p);
+			}
+
+			entityManager.getTransaction().commit();
+			entityManager.close();
+		}
+	}
+
 }
