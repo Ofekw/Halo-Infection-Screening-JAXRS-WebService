@@ -60,7 +60,7 @@ public class Candidate {
     @Enumerated
     private Species species;
     
-    @OneToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     @CollectionTable(name="ASSESSMENTS")
     private List<CandidateAssessment> assessments = new ArrayList<CandidateAssessment>();
 

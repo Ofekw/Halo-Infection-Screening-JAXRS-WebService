@@ -14,7 +14,11 @@ import domain.Planet;
 
 public enum Species {
 	HUMAN("H", "Human"), 
-	SHENGHELI("S", "Elite"),
+	SHENGHEILI("E", "Elite"),
+	KINGYAR("J", "Jackal"),
+	Unggoy("G", "Grunt"),
+	Jiralhanae("B", "Brutes"),
+	Mgalekgolo("H", "Hunter"),
 	UNKNOWN("U", "Unknown");
 	
 	

@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
@@ -89,8 +90,7 @@ public class CandidateWebServiceTest{
 
 		String location = response.getLocation().toString();
 		response.close();
-		
-		CANDIDATE_URI = location;
+
 
 		// Query the Web service for the new Candidate.
 		CandidateDTO fromService = client.target(location).request()
@@ -100,6 +100,12 @@ public class CandidateWebServiceTest{
 		assertEquals(dto.getFirstname(), fromService.getFirstname());
 		assertEquals(dto.getGender(), fromService.getGender());
 		assertEquals(dto.getDob(), fromService.getDob());
+		
+		//Setting global URI of first candidate to be used by other tests
+		CANDIDATE_URI = location;
+		if(CANDIDATE_URI == null){
+			fail();
+		}
 	}
 	
 	
@@ -134,7 +140,7 @@ public class CandidateWebServiceTest{
 	
 	@SuppressWarnings("unchecked")
 	@Test
-	public void addCandidatewithAssessment() {
+	public void addAssessmentToCandidate() {
 		System.err.println(CANDIDATE_URI);	
 		
 		
@@ -202,10 +208,10 @@ public class CandidateWebServiceTest{
 		
 	}
 	
-//	@Test
+	@Test
 	public void getAllCandidates(){
 		CandidateDTO dto1 = new CandidateDTO("Holbrok", "Linda", new Date(17374219502345l), constants.Gender.FEMALE, constants.Species.HUMAN);
-		CandidateDTO dto2 = new CandidateDTO("117", "Carter", new Date(17374219502345l), constants.Gender.MALE, constants.Species.SHENGHELI);
+		CandidateDTO dto2 = new CandidateDTO("James", "Carter", new Date(17374219502345l), constants.Gender.MALE, constants.Species.SHENGHEILI);
 
 		Response response = client
 				.target(WEB_SERVICE_URI).request()
@@ -228,6 +234,31 @@ public class CandidateWebServiceTest{
 		assertTrue(fromServiceCandidates.size() > 2 );
 		
 		
+	}
+	
+	@Test
+	public void bookmarkCandidateUsingCookies(){
+		//feature can be used if a candidate is starred for reviewing later
+		CandidateDTO dto = new CandidateDTO("Vadem", "Thel", new Date(1737428951000l), constants.Gender.MALE, constants.Species.SHENGHEILI);
+		
+		Response response = client
+				.target(WEB_SERVICE_URI).request()
+				.post(Entity.xml(dto));
+		if (response.getStatus() != 201) {
+			fail("Failed to create new Candidate");
+		}
+
+		String location = response.getLocation().toString();
+		response.close();
+		
+		CandidateDTO fromService = client.target(location).request()
+				.accept("application/xml").get(CandidateDTO.class);
+		
+		response = client.target(location+"/add/bookmark").request().get();
+		System.err.println("COOKIE STRING: "+ response.getCookies().keySet());
+		System.err.println("COOKIE STRING: "+ response.getCookies().get("candidate"));
+		assertEquals(response.getCookies().get("candidate").toCookie().getValue(), Long.toString(fromService.getId()));
+		response.close();
 	}
 	
 }

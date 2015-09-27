@@ -9,6 +9,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -17,7 +18,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.GenericEntity;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 
 import org.slf4j.Logger;
@@ -205,7 +209,7 @@ public class CandidateResource {
 	public GenericEntity<List<CandidateDTO>> getCandidates() {
 		// Get the all Candidate object from the database.
 		entityManager.getTransaction().begin();
-		List<Candidate> candidates = entityManager.createQuery("select c from Candidates c").getResultList();
+		List<Candidate> candidates = entityManager.createQuery("select c from Candidate c").getResultList();
 		
 		List<CandidateDTO> candidatesDTO = new LinkedList<CandidateDTO>();
 		
@@ -221,6 +225,36 @@ public class CandidateResource {
 
 				return entity;
 	}
+	
+	/**
+	 * Method for creating a cookie, to allow operator to bookmark candidates for later review
+	 * @param id
+	 * @return
+	 */
+	
+	@GET
+	@Path("{id}/add/bookmark")
+	@Produces(MediaType.TEXT_PLAIN)
+	public Response bookmarkCandidate(@PathParam("id") long id) {
+		//Set max age of cookie to 0 for testing purposes
+	    NewCookie cookie = new NewCookie("candidate", Long.toString(id));
+	  
+	    logger.debug("Created a cookie for: "+ id +" with details: " + cookie.toString());
+	    return Response.ok("OK").cookie(cookie).build();
+	}
+	
+	@GET
+	@Path("/get/bookmark")
+	@Produces(MediaType.TEXT_PLAIN)
+	public Response foo(@CookieParam("candidate") Cookie cookie) {
+	    if (cookie == null) {
+	    	logger.debug("Unable to retrieve cookie");
+	        return Response.serverError().entity("ERROR").build();
+	    } else {
+	    	logger.debug("Retrieving bookmarked candidate with details: " + cookie.toString());
+	        return Response.ok(cookie.getValue()).build();
+	    }
+	}
 
 
 
@@ -228,7 +262,6 @@ public class CandidateResource {
 	@DELETE
 	@Path("all/delete")
 	public void wipeAll() {
-		if(CandidateWebServiceTest.DELETE_ALL){
 			logger.debug("WIPING DATA");
 			entityManager.getTransaction().begin();
 			List<Candidate> candidates = entityManager.createQuery("select c from Candidate c").getResultList();
@@ -257,7 +290,6 @@ public class CandidateResource {
 
 			entityManager.getTransaction().commit();
 			entityManager.close();
-		}
 	}
 
 }
