@@ -31,6 +31,11 @@ import constants.DatabaseConstants;
 import constants.Gender;
 import constants.Species;
 import dto.CandidateDTO;
+/**
+ * @Candidate entity is used to store all the information relating a candidate that is entered into the program
+ * @author Ofek | UPI: OWIT454
+ *
+ */
 
 @Entity
 @Table(name = "CANDIDATE")
@@ -251,7 +256,7 @@ public class Candidate {
 		buffer.append(" born: ");
 		buffer.append(dob);
 		buffer.append(" lives at: ");
-		buffer.append(address.toString());
+		buffer.append(address);
 		
 		return buffer.toString();
 	}

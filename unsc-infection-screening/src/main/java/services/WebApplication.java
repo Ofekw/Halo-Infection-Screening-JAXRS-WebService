@@ -8,6 +8,12 @@ import singleton.EntityManagerFactorySingleton;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * @Candidate JAX-RS web application to handle the Infection Screening Service
+ * @author Ofek | UPI: OWIT454
+ *
+ */
+
 @ApplicationPath("/services")
 public class WebApplication extends Application
 {
@@ -17,9 +23,9 @@ public class WebApplication extends Application
    public WebApplication()
    {
 	  // Register the Resources singleton to handle HTTP requests.
-	   CandidateResource cr = new CandidateResource();
-	   EntityManagerFactorySingleton emf = new EntityManagerFactorySingleton();
-      singletons.add(emf);
+	  CandidateResource cr = new CandidateResource();
+	  EntityManagerFactorySingleton emf = new EntityManagerFactorySingleton();
+	  singletons.add(emf);
       
       // Register the ContextResolver class for JAXB.
 	  classes.add(cr.getClass());

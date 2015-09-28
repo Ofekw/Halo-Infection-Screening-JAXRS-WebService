@@ -3,6 +3,11 @@ package services;
 import dto.CandidateDTO;
 import constants.Species;
 import domain.Candidate;
+/**
+ * Used by JAX-B to map the @Candidate to the @CandidateDTO
+ * @author Ofek | UPI: OWIT454
+ *
+ */
 
 public class CandidateMapper {
 	

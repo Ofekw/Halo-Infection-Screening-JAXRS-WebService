@@ -23,6 +23,12 @@ import constants.DatabaseConstants;
 @Entity
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
+/**
+ * @Address entity is used by @Candidate and by @AssessmentCenter.
+ * @author Ofek | UPI: OWIT454
+ *
+ */
+
 public class Address {
 	  	@Id 
 	    @GeneratedValue(generator=DatabaseConstants.ID_GENERATOR)

@@ -16,6 +16,11 @@ import org.joda.time.format.DateTimeFormatter;
 
 import constants.Stability;
 import formatters.DateTimeAdapter;
+/**
+ * An embedded entity which is wholly depended on the @Candidate
+ * @author Ofek | UPI: OWIT454
+ *
+ */
 
 @Embeddable
 @XmlRootElement

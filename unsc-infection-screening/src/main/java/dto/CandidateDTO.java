@@ -11,12 +11,22 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlID;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import constants.Gender;
 import constants.Species;
 import domain.Address;
 import domain.Candidate;
 import domain.CandidateAssessment;
 import domain.ClinicalStatus;
+
+/**
+ * Data Transfer Object Class to represent the Candidate Object
+ * We are using a DTO because it is more lightweight and does not contain candidate assessments 
+ * @author Ofek | UPI: OWIT454
+ *
+ */
 
 @XmlRootElement(name="candidate")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -163,6 +173,49 @@ public class CandidateDTO {
 	public void setSpecies(Species species) {
 		this.species = species;
 	}
+	
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof CandidateDTO))
+            return false;
+        if (obj == this)
+            return true;
 
+        CandidateDTO rhs = (CandidateDTO) obj;
+        return new EqualsBuilder().
+            append(lastname, rhs.lastname).
+            append(firstname, rhs.firstname).
+            append(dob.getTime(), rhs.dob.getTime()).
+            append(gender.getCode(), rhs.gender.getCode()).
+            append(species.getCode(), rhs.species.getCode()).
+            isEquals();
+	}
+	
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder(17, 31). 
+	            append(lastname).
+	            append(firstname).
+	            append(dob.getTime()).
+	            append(gender.getCode()).
+	            append(species.getCode()).
+	            toHashCode();
+	}
 
+	@Override
+	public String toString() {
+		
+		StringBuffer buffer = new StringBuffer();
+		
+		buffer.append(firstname);
+		buffer.append(" ");
+		buffer.append(lastname);
+		buffer.append(" born: ");
+		buffer.append(dob);
+		buffer.append(" lives at: ");
+		buffer.append(address);
+		
+		return buffer.toString();
+	}
 }

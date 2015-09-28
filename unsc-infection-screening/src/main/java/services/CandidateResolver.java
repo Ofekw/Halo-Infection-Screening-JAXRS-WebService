@@ -7,14 +7,14 @@ import javax.xml.bind.JAXBException;
 import domain.Candidate;
 
 /**
- * ContextResolver implementation to return a customised JAXBContext for the
+ * ContextResolver implementation to return a customised JAXBContext
  */
 public class CandidateResolver implements ContextResolver<JAXBContext> {
 	private JAXBContext _context;
 
 	public CandidateResolver() {
 		try {
-			// The JAXV Context should be able to marshal and unmarshal the
+			// The JAXB Context should be able to marshal and unmarshal the
 			// specified classes.
 			_context = JAXBContext.newInstance(Candidate.class);
 		} catch (JAXBException e) {

@@ -16,6 +16,11 @@ import org.joda.time.format.DateTimeFormatter;
 
 import constants.DatabaseConstants;
 
+/**
+ * A planet is used in an @Address object
+ * @author Ofek | UPI: OWIT454
+ *
+ */
 
 @Entity
 @XmlRootElement

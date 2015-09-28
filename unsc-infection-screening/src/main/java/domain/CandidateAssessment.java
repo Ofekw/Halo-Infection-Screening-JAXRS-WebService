@@ -43,6 +43,12 @@ import javax.persistence.JoinColumn;
 @Entity
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
+/**
+ * A @CandidateAssessment stores information regarding a screening and is directly linked to an @AssessmentCenter
+ * @author Ofek | UPI: OWIT454
+ *
+ */
+
 public class CandidateAssessment implements Comparable<CandidateAssessment> {
 	
     @Id 

@@ -23,6 +23,12 @@ import constants.DatabaseConstants;
 @Entity
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
+/**
+ * @AssessmentCenter used by @Assessment
+ * @author Ofek | UPI: OWIT454
+ *
+ */
+
 public class AssessmentCenter {
 		@Id
 		@GeneratedValue(generator=DatabaseConstants.ID_GENERATOR)

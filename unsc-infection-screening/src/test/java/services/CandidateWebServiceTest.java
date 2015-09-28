@@ -41,9 +41,13 @@ import domain.CandidateAssessment;
 import domain.ClinicalStatus;
 import domain.Planet;
 import dto.CandidateDTO;
-import singleton.CandidateWorkerSingleton;
 import singleton.EntityManagerFactorySingleton;
-import workers.CandidateWorker;
+/**
+ * Unit tests to insure all webservice functions work as expected
+ * @author Ofek | UPI: OWIT454
+ *
+ */
+
 
 public class CandidateWebServiceTest{
 	private static final String WEB_SERVICE_URI = "http://localhost:8080/services/candidates";
@@ -61,11 +65,15 @@ public class CandidateWebServiceTest{
 	}
 
 	/**
-	 * One-time finalisation method that destroys the Web service client.
+	 * Finalization method that destroys the Web service client.
 	 */
 	@After
 	public void destroyClient() {
 		client.close();
+		try {
+			Thread.sleep(10);
+		} catch (InterruptedException e) {
+		}
 	}
 	
 	@AfterClass
@@ -81,7 +89,7 @@ public class CandidateWebServiceTest{
 	}
 
 	/**
-	 * Tests that the Web service can create a new Candidate.
+	 * Tests that the webservice can create a new Candidate.
 	 */
 	@Test
 	public void addCandidate() {
@@ -113,6 +121,26 @@ public class CandidateWebServiceTest{
 		}
 	}
 	
+	/**
+	 * Tests that the webservice supports JSON request
+	 */
+	@Test
+	public void retrieveCandidateAsJSON() {
+
+		// Query the Web service for the existing Candidate as JSON.
+		CandidateDTO jsonDTO = client.target(CANDIDATE_URI).request()
+				.accept("application/json").get(CandidateDTO.class);
+		
+		// Query the Web service for the existing Candidate as XML.
+		CandidateDTO xmlDTO = client.target(CANDIDATE_URI).request()
+				.accept("application/xml").get(CandidateDTO.class);
+
+		assertEquals(xmlDTO.getId(), jsonDTO.getId());
+	}
+	
+	/**
+	 * Tests that we are able to add and retrieve clincal status attached to a candidate
+	 */
 	@Test
 	public void addAndRetrieveStatus(){
 		ClinicalStatus status = new ClinicalStatus(Stability.STABLE, new DateTime());
@@ -129,6 +157,9 @@ public class CandidateWebServiceTest{
 		assertEquals(fromService.getStatusLog().get(0), status);
 	}
 	
+	/**
+	 * Tests that there is caching support to reduce database operations
+	 */
 	@Test
 	public void testCachedCandidate(){
 		
@@ -148,7 +179,10 @@ public class CandidateWebServiceTest{
 		
 	}
 	
-	
+	/**
+	 * Tests that we are able to set an address and retrieve it from a candidate
+	 * An address contains another persisted entity: Planet (we are testing that this is cascadingly persisted)
+	 */
 	@Test
 	public void addAndRetrieveCandidateWithAddress() {
 
@@ -175,8 +209,11 @@ public class CandidateWebServiceTest{
 		//test planet
 		assertEquals(address.getPlanet(), fromService.getAddress().getPlanet());
 	}
-	
-	@SuppressWarnings("unchecked")
+	/**
+	 * Tests that we are able to add several assessments to a candidate through the webservice.
+	 * Tests that we can retrieve all assessments linked with a candidate.
+	 * Tests that we are able to retrieve individual assessments queried by their id
+	 */
 	@Test
 	public void addAssessmentToCandidate() {
 		Planet planet1 = new Planet("Mars", "Milkyway","English");
@@ -226,7 +263,9 @@ public class CandidateWebServiceTest{
 		assertEquals(fromServiceAssessment.isInfected(), false);
 		assertEquals(fromServiceAssessment.isQuarantined(), false);
 	}
-	
+	/**
+	 * Testing if we can retrieve an existing candidate, update their details and persist again using the webservice
+	 */
 	@Test
 	public void updateCandidateDetails(){
 		
@@ -246,6 +285,10 @@ public class CandidateWebServiceTest{
 		assertEquals(fromService.getDod(),new Date(18388123200000l));
 		
 	}
+	
+	/**
+	 * Testing if we can retrieve a Generic Type collection (in this case, all candidates in the database)
+	 */
 	
 	@Test
 	public void getAllCandidates(){
@@ -274,12 +317,14 @@ public class CandidateWebServiceTest{
 		
 		
 	}
-	
+	/**
+	 * Testing if we can create a cookie that holds the id of the last candidate and then retrieve that cookie
+	 * This can be used to "bookmark" or "star" a candidate for later review
+	 */
 	@Test
 	public void bookmarkCandidateUsingCookies(){
-		//feature can be used if a candidate is starred for reviewing later
+
 		CandidateDTO dto = new CandidateDTO("Vadem", "Thel", new Date(1737428951000l), constants.Gender.MALE, constants.Species.SHENGHEILI);
-		
 		Response response = client
 				.target(WEB_SERVICE_URI).request()
 				.post(Entity.xml(dto));
@@ -289,22 +334,48 @@ public class CandidateWebServiceTest{
 
 		String location = response.getLocation().toString();
 		response.close();
-		
 		CandidateDTO fromService = client.target(location).request()
 				.accept("application/xml").get(CandidateDTO.class);
-		
-		response = client.target(location+"/add/bookmark").request().get();
-		assertEquals(response.getCookies().get("candidate").toCookie().getValue(), Long.toString(fromService.getId()));
-		response.close();
-	}
 
+		//create a cookie for the candidate
+		response = client.target(location+"/add/bookmark").request().get();
+		Cookie cookie = response.getCookies().get("candidate").toCookie();
+		assertEquals(cookie.getValue(), Long.toString(fromService.getId()));
+		response.close();
+		
+		//now retrieve candidate using cookie
+		CandidateDTO cookieDTO = client.target(WEB_SERVICE_URI+"/get/bookmarked").request().cookie(cookie).get(CandidateDTO.class);
+		assertEquals(Long.toString(cookieDTO.getId()), cookie.getValue());
+		
+	}
+	
+	/**
+	 * Testing an asynchronous call to retrieve the most critical status for a candidate
+	 * This simulates a resource intensive method that may take a while to reply (ie. if the candidate has a large clinical log)
+	 */
 	@Test
 	public void asyncGetMostCriticalStatus(){
 		//add a critical status to candidate
-		ClinicalStatus status = new ClinicalStatus(Stability.CRITICAL, new DateTime());
+		ClinicalStatus status1 = new ClinicalStatus(Stability.STABLE, new DateTime());
+		ClinicalStatus status2 = new ClinicalStatus(Stability.CRITICAL, new DateTime());
+		ClinicalStatus status3 = new ClinicalStatus(Stability.STABLE, new DateTime());
+		ClinicalStatus status4 = new ClinicalStatus(Stability.MODERATE, new DateTime());
 		Response response = client
 				.target(CANDIDATE_URI+"/add/status").request()
-				.put(Entity.xml(status));
+				.put(Entity.xml(status1));
+		response.close();
+		
+		 response = client
+				.target(CANDIDATE_URI+"/add/status").request()
+				.put(Entity.xml(status2));
+		response.close();
+		response = client
+				.target(CANDIDATE_URI+"/add/status").request()
+				.put(Entity.xml(status3));
+		response.close();
+		response = client
+				.target(CANDIDATE_URI+"/add/status").request()
+				.put(Entity.xml(status4));
 		response.close();
 		
 		//Async call to do server side heavy processing
@@ -320,7 +391,7 @@ public class CandidateWebServiceTest{
 			fail();
 		}
 		
-		assertEquals(status, asyncStatus);
+		assertEquals(status2, asyncStatus);
 		
 			
 	}
