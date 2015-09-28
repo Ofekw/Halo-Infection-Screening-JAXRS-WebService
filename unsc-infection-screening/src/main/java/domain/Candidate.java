@@ -22,6 +22,11 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlTransient;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
 import constants.DatabaseConstants;
 import constants.Gender;
 import constants.Species;
@@ -203,7 +208,53 @@ public class Candidate {
 	public void setSpecies(Species species) {
 		this.species = species;
 	}
-    
-   
+	
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof Candidate))
+            return false;
+        if (obj == this)
+            return true;
+
+        Candidate rhs = (Candidate) obj;
+        return new EqualsBuilder().
+            append(lastname, rhs.lastname).
+            append(firstname, rhs.firstname).
+            append(dob, rhs.dob).
+            append(gender, rhs.gender).
+            append(address, rhs.address).
+            append(species, rhs.species).
+            isEquals();
+	}
+	
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder(17, 31). 
+	            append(lastname).
+	            append(firstname).
+	            append(dob).
+	            append(gender).
+	            append(address).
+	            append(species).
+	            toHashCode();
+	}
+
+	@Override
+	public String toString() {
+		
+		StringBuffer buffer = new StringBuffer();
+		
+		buffer.append(firstname);
+		buffer.append(" ");
+		buffer.append(firstname);
+		buffer.append(" born: ");
+		buffer.append(dob);
+		buffer.append(" lives at: ");
+		buffer.append(address.toString());
+		
+		return buffer.toString();
+	}
 }
 
+    

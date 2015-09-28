@@ -1,20 +1,20 @@
 package constants;
 
 public enum Stability {
-		STABLE("S", "Stable"), 
-		MODERATE("M", "Moderate"),
-		CRITICAL("C", "Critical");
+		STABLE(1, "Stable"), 
+		MODERATE(2, "Moderate"),
+		CRITICAL(3, "Critical");
 		
 		
-		private String code;
+		private int code;
 		private String status;
 		
-		private Stability(String code, String status){
+		private Stability(int code, String status){
 			this.code = code;
 			this.status = status;
 		}
 		
-		public String getCode(){
+		public int getCode(){
 			return this.code;
 		}
 		

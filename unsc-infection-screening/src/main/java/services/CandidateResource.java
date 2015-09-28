@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 import javax.persistence.EntityManager;
@@ -22,12 +23,19 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.container.TimeoutHandler;
+import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
+import org.jboss.resteasy.annotations.Suspend;
+import org.jboss.resteasy.spi.AsynchronousResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +57,7 @@ public class CandidateResource {
 	private static final Logger logger = LoggerFactory.getLogger(CandidateResource.class);
 	private EntityManagerFactory enityManagerFactory;
 	private  EntityManager entityManager;
+
 
 	public CandidateResource() {
 		enityManagerFactory = EntityManagerFactorySingleton.getInstance();
@@ -130,23 +139,35 @@ public class CandidateResource {
 	   @GET
 	   @Produces("application/xml")
 	   @Path("{id}/get/status")
-	   public void asyncGet(@Suspended final AsyncResponse asyncResponse) {
-		   logger.debug("I AM GETTING IN HERE");
-           asyncResponse.setTimeout(1000, TimeUnit.MILLISECONDS);
-           asyncResponse.setTimeoutHandler(new TimeoutHandler() {
-			@Override
-			public void handleTimeout(AsyncResponse ar) {
-				ar.resume(
-				           Response.status(Response.Status.SERVICE_UNAVAILABLE)
-				                   .entity("Operation timed out")
-				                   .build());
-			}
-		});
-
-
-           String result = "two";
-           asyncResponse.resume(result);
-       }
+	   public AsynchronousResponse asyncGet(@PathParam("id") final long id, @Suspend(1000) final AsynchronousResponse  asyncResponse) {
+		   logger.debug("Asynchronously getting most critical status from the candidate status log");
+		   Thread t=new Thread(){
+			   @Override public void run(){
+				   try {
+					   //Simulate time consuming task, such as finding the most sever clinical status for a candidate
+					   entityManager.getTransaction().begin();
+					   Candidate candidate = entityManager.find( Candidate.class, id);
+					   
+					   ClinicalStatus mostSevereStatus = null;
+					   
+					   for (ClinicalStatus status : candidate.getStatusLog()){
+						   if (mostSevereStatus == null || status.getStatus().getCode() > mostSevereStatus.getStatus().getCode()){
+							  mostSevereStatus = status; 
+						   }
+					   }
+					   
+					   Response resp=Response.ok(mostSevereStatus).type("application/xml").build();
+					   asyncResponse.setResponse(resp);
+				   }
+				   catch (      Exception e) {
+					   e.printStackTrace();
+				   }
+			   }
+		   }
+		   ;
+		   t.start();
+		return asyncResponse;
+	   }
 
 
 	/**
@@ -209,6 +230,33 @@ public class CandidateResource {
 		entityManager.close();
 
 		return dto;
+	}
+	
+	@GET
+	@Path("{id}/cached")
+	@Produces("application/xml")
+	public Response getCandidateChached(
+			@PathParam("id") long id, @Context Request request) {
+		// Get the full Candidate object from the database.
+		entityManager.getTransaction().begin();
+		Candidate candidate = entityManager.find( Candidate.class, id);
+		logger.debug("Retrived Candidate WITH ID: " + candidate.getId());
+		entityManager.getTransaction().commit();
+		entityManager.close();
+		
+		CacheControl cc = new CacheControl();
+		cc.setMaxAge(10);
+		
+		EntityTag etag = new EntityTag(Integer.toString(candidate.hashCode()));
+		ResponseBuilder builder = request.evaluatePreconditions(etag);
+		logger.debug("Checking if candidate is already cached: " + candidate.getId());
+	    if(builder == null){
+	    	logger.debug("cached candidate did change -> serve updated content");
+	        builder = Response.ok(CandidateMapper.toDto(candidate));
+	        builder.tag(etag);
+	        
+	    }
+		return builder.build();
 	}
 
 	@GET

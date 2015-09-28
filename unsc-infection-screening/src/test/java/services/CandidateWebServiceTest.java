@@ -12,6 +12,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.GenericEntity;
@@ -127,22 +129,23 @@ public class CandidateWebServiceTest{
 		assertEquals(fromService.getStatusLog().get(0), status);
 	}
 	
-//	@Test
-	public void asyncGetStatus(){
-		  client.target(CANDIDATE_URI+"/get/status").request().async()
-		  .get(new InvocationCallback<String>() {
-
-		@Override
-		public void failed(Throwable arg0) {
-			 System.err.println("SYNC FAILED: "+ arg0);
-			
-	}
-
-		@Override
-		public void completed(String arg0) {
-			 System.err.println("SYNC :"+arg0);
-		}
-  });
+	@Test
+	public void testCachedCandidate(){
+		
+		//Cache candidate
+		Response response1 = client.target(CANDIDATE_URI+"/cached").request()
+				.accept("application/xml").get(Response.class);
+		String etag1 = response1.getHeaderString("ETag");
+		response1.close();
+		
+		//get cached candidate (note it is hard to test caching server side without a client browser)
+		Response response2 = client.target(CANDIDATE_URI+"/cached").request()
+				.accept("application/xml").get(Response.class);
+		String etag2 = response1.getHeaderString("ETag");
+		response2.close();
+		
+		assertEquals(etag1,etag2);
+		
 	}
 	
 	
@@ -151,8 +154,6 @@ public class CandidateWebServiceTest{
 
 		Planet planet = new Planet("Biko", "ZENON-12","English/Chinese");
 		Address address = new Address("213423423 Rd Ave", planet, "Durban", "123-44");
-		
-		System.err.println(CANDIDATE_URI);
 		
 		Response response = client
 				.target(CANDIDATE_URI+"/add/address").request()
@@ -178,9 +179,6 @@ public class CandidateWebServiceTest{
 	@SuppressWarnings("unchecked")
 	@Test
 	public void addAssessmentToCandidate() {
-		System.err.println(CANDIDATE_URI);	
-		
-		
 		Planet planet1 = new Planet("Mars", "Milkyway","English");
 		Address address1 = new Address("44-54", planet1, "Durban", "123-44");
 		address1.setLatitude(-4511.23);
@@ -296,10 +294,34 @@ public class CandidateWebServiceTest{
 				.accept("application/xml").get(CandidateDTO.class);
 		
 		response = client.target(location+"/add/bookmark").request().get();
-		System.err.println("COOKIE STRING: "+ response.getCookies().keySet());
-		System.err.println("COOKIE STRING: "+ response.getCookies().get("candidate"));
 		assertEquals(response.getCookies().get("candidate").toCookie().getValue(), Long.toString(fromService.getId()));
 		response.close();
 	}
-	
+
+	@Test
+	public void asyncGetMostCriticalStatus(){
+		//add a critical status to candidate
+		ClinicalStatus status = new ClinicalStatus(Stability.CRITICAL, new DateTime());
+		Response response = client
+				.target(CANDIDATE_URI+"/add/status").request()
+				.put(Entity.xml(status));
+		response.close();
+		
+		//Async call to do server side heavy processing
+		Future<Response> resp = client.target(CANDIDATE_URI+"/get/status").request().async().get();
+		ClinicalStatus asyncStatus = null;
+		try {
+			asyncStatus = resp.get().readEntity(ClinicalStatus.class);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			fail();
+		} catch (ExecutionException e) {
+			e.printStackTrace();
+			fail();
+		}
+		
+		assertEquals(status, asyncStatus);
+		
+			
+	}
 }
