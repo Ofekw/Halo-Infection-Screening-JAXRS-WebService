@@ -19,6 +19,8 @@ import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Response.StatusType;
 import javax.persistence.EntityManager;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -34,6 +36,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import constants.Stability;
+import csrf.CSRFGenerator;
 import domain.Address;
 import domain.AssessmentCenter;
 import domain.Candidate;
@@ -41,6 +44,7 @@ import domain.CandidateAssessment;
 import domain.ClinicalStatus;
 import domain.Planet;
 import dto.CandidateDTO;
+import singleton.CSRFGeneratorSingleton;
 import singleton.EntityManagerFactorySingleton;
 /**
  * Unit tests to insure all webservice functions work as expected
@@ -63,7 +67,7 @@ public class CandidateWebServiceTest{
 	public void setUpClient() {
 		client = ClientBuilder.newClient();
 	}
-
+	
 	/**
 	 * Finalization method that destroys the Web service client.
 	 */
@@ -109,8 +113,8 @@ public class CandidateWebServiceTest{
 		CandidateDTO fromService = client.target(location).request()
 				.accept("application/xml").get(CandidateDTO.class);
 
-		assertEquals(dto.getLastname(), fromService.getLastname());
-		assertEquals(dto.getFirstname(), fromService.getFirstname());
+		assertEquals("117", fromService.getLastname());
+		assertEquals("John", fromService.getFirstname());
 		assertEquals(dto.getGender(), fromService.getGender());
 		assertEquals(dto.getDob(), fromService.getDob());
 		
@@ -126,6 +130,18 @@ public class CandidateWebServiceTest{
 	 */
 	@Test
 	public void retrieveCandidateAsJSON() {
+		
+		CandidateDTO dto = new CandidateDTO("Srg", "Johnson", new Date(17374549200000l), constants.Gender.MALE, constants.Species.HUMAN);
+		Response response = client
+				.target(WEB_SERVICE_URI).request()
+				.post(Entity.xml(dto));
+		if (response.getStatus() != 201) {
+			fail("Failed to create new Candidate");
+		}
+		
+		String location = response.getLocation().toString();
+		response.close();
+		CANDIDATE_URI = location;
 
 		// Query the Web service for the existing Candidate as JSON.
 		CandidateDTO jsonDTO = client.target(CANDIDATE_URI).request()
@@ -143,6 +159,19 @@ public class CandidateWebServiceTest{
 	 */
 	@Test
 	public void addAndRetrieveStatus(){
+		
+		CandidateDTO dto = new CandidateDTO("Cpt", "Keys", new Date(17365549200000l), constants.Gender.MALE, constants.Species.HUMAN);
+		Response initResponse = client
+				.target(WEB_SERVICE_URI).request()
+				.post(Entity.xml(dto));
+		if (initResponse.getStatus() != 201) {
+			fail("Failed to create new Candidate");
+		}
+		
+		String location = initResponse.getLocation().toString();
+		initResponse.close();
+		CANDIDATE_URI = location;
+		
 		ClinicalStatus status = new ClinicalStatus(Stability.STABLE, new DateTime());
 		Response response = client
 				.target(CANDIDATE_URI+"/add/status").request()
@@ -162,6 +191,19 @@ public class CandidateWebServiceTest{
 	 */
 	@Test
 	public void testCachedCandidate(){
+		
+		CandidateDTO dto = new CandidateDTO("Spartan", "Locke", new Date(17365546435000l), constants.Gender.MALE, constants.Species.HUMAN);
+		Response initResponse = client
+				.target(WEB_SERVICE_URI).request()
+				.post(Entity.xml(dto));
+		if (initResponse.getStatus() != 201) {
+			fail("Failed to create new Candidate");
+		}
+		
+		String location = initResponse.getLocation().toString();
+		initResponse.close();
+		CANDIDATE_URI = location;
+		
 		
 		//Cache candidate
 		Response response1 = client.target(CANDIDATE_URI+"/cached").request()
@@ -185,6 +227,17 @@ public class CandidateWebServiceTest{
 	 */
 	@Test
 	public void addAndRetrieveCandidateWithAddress() {
+		CandidateDTO dto = new CandidateDTO("Thomas", "Lasky", new Date(17365546978600l), constants.Gender.MALE, constants.Species.HUMAN);
+		Response initResponse = client
+				.target(WEB_SERVICE_URI).request()
+				.post(Entity.xml(dto));
+		if (initResponse.getStatus() != 201) {
+			fail("Failed to create new Candidate");
+		}
+		
+		String location = initResponse.getLocation().toString();
+		initResponse.close();
+		CANDIDATE_URI = location;
 
 		Planet planet = new Planet("Biko", "ZENON-12","English/Chinese");
 		Address address = new Address("213423423 Rd Ave", planet, "Durban", "123-44");
@@ -216,6 +269,18 @@ public class CandidateWebServiceTest{
 	 */
 	@Test
 	public void addAssessmentToCandidate() {
+		CandidateDTO dto = new CandidateDTO("087", "Kelly", new Date(17365546423540l), constants.Gender.MALE, constants.Species.HUMAN);
+		Response initResponse = client
+				.target(WEB_SERVICE_URI).request()
+				.post(Entity.xml(dto));
+		if (initResponse.getStatus() != 201) {
+			fail("Failed to create new Candidate");
+		}
+		
+		String location = initResponse.getLocation().toString();
+		initResponse.close();
+		CANDIDATE_URI = location;
+		
 		Planet planet1 = new Planet("Mars", "Milkyway","English");
 		Address address1 = new Address("44-54", planet1, "Durban", "123-44");
 		address1.setLatitude(-4511.23);
@@ -268,6 +333,17 @@ public class CandidateWebServiceTest{
 	 */
 	@Test
 	public void updateCandidateDetails(){
+		CandidateDTO dto = new CandidateDTO("104", "Fredric", new Date(173655466548100l), constants.Gender.MALE, constants.Species.HUMAN);
+		Response initResponse = client
+				.target(WEB_SERVICE_URI).request()
+				.post(Entity.xml(dto));
+		if (initResponse.getStatus() != 201) {
+			fail("Failed to create new Candidate");
+		}
+		
+		String location = initResponse.getLocation().toString();
+		initResponse.close();
+		CANDIDATE_URI = location;
 		
 		CandidateDTO fromService = client.target(CANDIDATE_URI).request().accept("application/xml").get(CandidateDTO.class);
 		
@@ -313,7 +389,7 @@ public class CandidateWebServiceTest{
 		
 		List<CandidateDTO> fromServiceCandidates = 
 				client.target(WEB_SERVICE_URI+"/get/all/candidates/").request().accept("application/xml").get(new GenericType<List<CandidateDTO>>( ){});
-		assertTrue(fromServiceCandidates.size() > 2 );
+		assertTrue(fromServiceCandidates.size() > 1 );
 		
 		
 	}
@@ -355,6 +431,18 @@ public class CandidateWebServiceTest{
 	 */
 	@Test
 	public void asyncGetMostCriticalStatus(){
+		CandidateDTO dto = new CandidateDTO("051", "Kurt", new Date(17365546435000l), constants.Gender.MALE, constants.Species.HUMAN);
+		Response initResponse = client
+				.target(WEB_SERVICE_URI).request()
+				.post(Entity.xml(dto));
+		if (initResponse.getStatus() != 201) {
+			fail("Failed to create new Candidate");
+		}
+		
+		String location = initResponse.getLocation().toString();
+		initResponse.close();
+		CANDIDATE_URI = location;
+		
 		//add a critical status to candidate
 		ClinicalStatus status1 = new ClinicalStatus(Stability.STABLE, new DateTime());
 		ClinicalStatus status2 = new ClinicalStatus(Stability.CRITICAL, new DateTime());
@@ -383,6 +471,7 @@ public class CandidateWebServiceTest{
 		ClinicalStatus asyncStatus = null;
 		try {
 			asyncStatus = resp.get().readEntity(ClinicalStatus.class);
+			assertEquals(status2, asyncStatus);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 			fail();
@@ -390,9 +479,28 @@ public class CandidateWebServiceTest{
 			e.printStackTrace();
 			fail();
 		}
-		
-		assertEquals(status2, asyncStatus);
-		
-			
 	}
+		/**
+		 * Test to demonstrate a proof of concept for a secure connection using a CSRF (Cross-site request forgery) token.
+		 * Communicates with a resource uri that can only only respond if the request is secure.
+		 */
+		@Test
+		public void testCSRFSecurity(){
+			//Generate token using random function
+			CSRFGenerator gen = new CSRFGeneratorSingleton().getInstance();
+			double generateCSRF = gen.generateCSRF();
+			Cookie secureCookie = new Cookie("csrf",  (Double.toString(generateCSRF))); //Generate valid CSRF
+			Response response1 = client.target(WEB_SERVICE_URI+"/get/response/secure").request().cookie(secureCookie).get();
+			StatusType response1Status = response1.getStatusInfo();
+			response1.close();
+			Cookie badCookie = new Cookie("csrf",  "1.123456789"); //Simulate a bad CSRF
+			Response response2 = client.target(WEB_SERVICE_URI+"/get/response/secure").request().cookie(badCookie).get();
+			StatusType response2Status = response2.getStatusInfo();
+			response2.close();
+
+			assertEquals(response1Status, Status.ACCEPTED); //request1 is accepted and secure
+			assertEquals(response2Status, Status.FORBIDDEN); //request2 denied
+		}
+		
+		
 }

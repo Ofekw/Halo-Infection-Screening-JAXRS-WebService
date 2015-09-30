@@ -1,7 +1,9 @@
 package services;
 
 import java.net.URI;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -33,19 +35,22 @@ import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
 
 import org.jboss.resteasy.annotations.Suspend;
 import org.jboss.resteasy.spi.AsynchronousResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import csrf.CSRFGenerator;
 import domain.Address;
 import domain.AssessmentCenter;
 import domain.Candidate;
 import domain.CandidateAssessment;
 import domain.ClinicalStatus;
 import domain.Planet;
-import dto.*;
+import dto.CandidateDTO;
+import singleton.CSRFGeneratorSingleton;
 import singleton.EntityManagerFactorySingleton;
 
 
@@ -59,7 +64,9 @@ import singleton.EntityManagerFactorySingleton;
 public class CandidateResource {
   private static final Logger logger = LoggerFactory.getLogger(CandidateResource.class);
   private EntityManagerFactory enityManagerFactory;
-  private  EntityManager entityManager;
+  private EntityManager entityManager;
+  private CSRFGenerator csrfGenerator = CSRFGeneratorSingleton.getInstance();
+  
 
 
   public CandidateResource() {
@@ -101,8 +108,10 @@ public class CandidateResource {
     entityManager.getTransaction().begin();
     //persist candidate
     Candidate candidate = entityManager.find(Candidate.class, id);
-    if( candidate == null ) {
-      throw new WebApplicationException(404);}
+    if (candidate == null) {
+        logger.debug("Unable to find the candidate");
+          throw new WebApplicationException(404);
+    }
     candidate.updateCandidateDetails(dto);
     entityManager.persist(candidate);
     entityManager.getTransaction().commit();
@@ -126,6 +135,10 @@ public class CandidateResource {
     logger.debug("Read candidate for adding status: " + id);
     entityManager.getTransaction().begin();
     Candidate candidate = entityManager.find( Candidate.class, id);
+    if (candidate == null) {
+        logger.debug("Unable to find the candidate");
+          throw new WebApplicationException(404);
+    }
     candidate.addStatus(status);
     entityManager.persist(candidate);
     logger.debug("Status details: " + status.toString());
@@ -153,6 +166,10 @@ public class CandidateResource {
              //Simulate time consuming task, such as finding the most sever clinical status for a candidate
              entityManager.getTransaction().begin();
              Candidate candidate = entityManager.find( Candidate.class, id);
+             if (candidate == null) {
+                 logger.debug("Unable to find the candidate");
+                   throw new WebApplicationException(404);
+             }
              entityManager.getTransaction().commit();
              entityManager.close();
              
@@ -191,6 +208,10 @@ public class CandidateResource {
     logger.debug("Read candidate for updating address: " + id);
     entityManager.getTransaction().begin();
     Candidate candidate = entityManager.find( Candidate.class, id);
+    if (candidate == null) {
+        logger.debug("Unable to find the candidate");
+          throw new WebApplicationException(404);
+    }
     candidate.setAddress(address);
     entityManager.persist(candidate);
     entityManager.getTransaction().commit();
@@ -214,6 +235,10 @@ public class CandidateResource {
     logger.debug("Read candidate for updating address: " + id);
     entityManager.getTransaction().begin();
     Candidate candidate = entityManager.find(Candidate.class, id);
+    if (candidate == null) {
+        logger.debug("Unable to find the candidate");
+          throw new WebApplicationException(404);
+    }
     assessment.setCandidate(candidate);
     candidate.addAssessment(assessment);
     entityManager.persist(candidate);
@@ -240,6 +265,10 @@ public class CandidateResource {
     // Get the full Candidate object from the database.
     entityManager.getTransaction().begin();
     Candidate candidate = entityManager.find( Candidate.class, id);
+    if (candidate == null) {
+        logger.debug("Unable to find the candidate");
+          throw new WebApplicationException(404);
+    }
     logger.debug("Retrived Candidate WITH ID: " + candidate.getId());
     CandidateDTO dto = CandidateMapper.toDto(candidate);
     entityManager.getTransaction().commit();
@@ -260,6 +289,10 @@ public class CandidateResource {
     // Get the full Candidate object from the database.
     entityManager.getTransaction().begin();
     Candidate candidate = entityManager.find( Candidate.class, id);
+    if (candidate == null) {
+        logger.debug("Unable to find the candidate");
+          throw new WebApplicationException(404);
+    }
     logger.debug("Retrived Candidate WITH ID: " + candidate.getId());
     CandidateDTO dto = CandidateMapper.toDto(candidate);
     entityManager.getTransaction().commit();
@@ -281,6 +314,10 @@ public class CandidateResource {
     // Get the full Candidate object from the database.
     entityManager.getTransaction().begin();
     Candidate candidate = entityManager.find( Candidate.class, id);
+    if (candidate == null) {
+        logger.debug("Unable to find the candidate");
+          throw new WebApplicationException(404);
+    }
     logger.debug("Retrived Candidate WITH ID: " + candidate.getId());
     entityManager.getTransaction().commit();
     entityManager.close();
@@ -312,6 +349,10 @@ public class CandidateResource {
     // Get the full Candidate object from the database.
     entityManager.getTransaction().begin();
     CandidateAssessment assessment = entityManager.find(CandidateAssessment.class,id);
+    if (assessment == null) {
+        logger.debug("Unable to find the assessment");
+          throw new WebApplicationException(404);
+    }
     logger.debug("Retrived assessment WITH ID: " + assessment.getId());
     entityManager.getTransaction().commit();
     entityManager.close();
@@ -335,7 +376,11 @@ public class CandidateResource {
     List<CandidateAssessment> assessments = entityManager.createQuery("select a from CandidateAssessment a where a.candidate like :candidate")
         .setParameter("candidate", candidate)
         .getResultList();
-
+    
+    if (assessments.isEmpty()) {
+        logger.debug("Unable to find any assessments");
+          throw new WebApplicationException(204);
+    }
     logger.debug("Retrived all assessment FOR CANDIDATE ID: " + id);
     entityManager.getTransaction().commit();
     entityManager.close();
@@ -358,7 +403,10 @@ public class CandidateResource {
     // Get the all Candidate object from the database.
     entityManager.getTransaction().begin();
     List<Candidate> candidates = entityManager.createQuery("select c from Candidate c").getResultList();
-    
+    if (candidates.isEmpty()) {
+        logger.debug("Unable to find any candidates");
+          throw new WebApplicationException(204);
+    }
     List<CandidateDTO> candidatesDTO = new LinkedList<CandidateDTO>();
     
     for (Candidate c : candidates){
@@ -386,7 +434,6 @@ public class CandidateResource {
   public Response bookmarkCandidate(@PathParam("id") long id) {
     //Set max age of cookie to 0 for testing purposes
       NewCookie cookie = new NewCookie("candidate", Long.toString(id));
-    
       logger.debug("Created a cookie for: "+ id +" with details: " + cookie.toString());
       return Response.ok("OK").cookie(cookie).build();
   }
@@ -411,6 +458,33 @@ public class CandidateResource {
       CandidateDTO dto = CandidateMapper.toDto(candidate);
           return dto;
       }
+  }
+  
+  /**
+   * Demonstrate a proof of concept for a secure connection using a CSRF token.
+   * To secure the whole webserive, there would need to be an intercepter that checked the CSRF token in every request
+   * A CSRF token prevents a CSRF. Cross-Site Request Forgery (CSRF) is a type of attack that occurs when a malicious 
+   * Web site, email, blog, instant message, or program causes a user's Web browser to perform an unwanted action on a trusted 
+   * site for which the user is currently authenticated.
+   * @param CSRF cookie
+   * @return Accepted or forbidden response
+   */
+  @GET
+  @Path("/get/response/secure")
+  @Produces("application/xml")
+  public Response returnResponseIfConnectionSecure(@CookieParam("csrf") Cookie cookie){
+	  String requestCSRF = cookie.getValue(); //get token from cookie
+	  double csrf = Double.parseDouble(cookie.getValue()); //set the CSRF for the session
+	  String csrfCookie = Double.toString(csrf).substring(0, 10);
+	  logger.debug("CSRF from cookie: " + csrfCookie);
+	  String csrfServer = Double.toString(csrfGenerator.generateCSRF()).substring(0, 10);
+	  logger.debug("CSRF from server: " + csrfServer);
+	  System.err.println("QUAKC2 "+csrfCookie);
+	  if (csrfCookie.equals(csrfServer)){
+		  logger.debug("CSRF tokens match, connection is secure");
+		  return Response.status(Status.ACCEPTED).build();
+	  }
+	  return Response.status(Status.FORBIDDEN).build();
   }
 
 
