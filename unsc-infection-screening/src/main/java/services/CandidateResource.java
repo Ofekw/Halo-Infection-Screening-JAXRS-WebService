@@ -15,12 +15,14 @@ import javax.persistence.Persistence;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
@@ -399,11 +401,16 @@ public class CandidateResource {
   @Path("/get/all/candidates")
   @Produces("application/xml")
   @SuppressWarnings("unchecked")
-  public GenericEntity<List<CandidateDTO>> getCandidates() {
+  public GenericEntity<List<CandidateDTO>> getCandidates(@DefaultValue("-1")@QueryParam("size") int size) {
     // Get the all Candidate object from the database.
     entityManager.getTransaction().begin();
-    List<Candidate> candidates = entityManager.createQuery("select c from Candidate c").getResultList();
-    if (candidates.isEmpty()) {
+    List<Candidate> candidates = null;
+    if (size < 0){
+    	candidates = entityManager.createQuery("select c from Candidate c").getResultList();
+    }else{
+    	candidates = entityManager.createQuery("select c from Candidate c").setMaxResults(size).getResultList();
+    }
+    	if (candidates.isEmpty()) {
         logger.debug("Unable to find any candidates");
           throw new WebApplicationException(204);
     }

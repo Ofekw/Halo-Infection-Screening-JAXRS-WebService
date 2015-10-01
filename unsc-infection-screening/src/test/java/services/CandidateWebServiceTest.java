@@ -214,6 +214,8 @@ public class CandidateWebServiceTest{
 		//get cached candidate (note it is hard to test caching server side without a client browser)
 		Response response2 = client.target(CANDIDATE_URI+"/cached").request()
 				.accept("application/xml").get(Response.class);
+//		esponse response2 = client.target(CANDIDATE_URI+"/cached").request().cacheControl(arg0)
+//				.accept("application/xml").get(Response.class);
 		String etag2 = response1.getHeaderString("ETag");
 		response2.close();
 		
@@ -387,9 +389,15 @@ public class CandidateWebServiceTest{
 		}
 		response.close();
 		
-		List<CandidateDTO> fromServiceCandidates = 
+		List<CandidateDTO> fromServiceCandidatesAll = 
 				client.target(WEB_SERVICE_URI+"/get/all/candidates/").request().accept("application/xml").get(new GenericType<List<CandidateDTO>>( ){});
-		assertTrue(fromServiceCandidates.size() > 1 );
+		List<CandidateDTO> fromServiceCandidatesSizeOf1 = 
+				client.target(WEB_SERVICE_URI+"/get/all/candidates/").queryParam("size", "1").request().accept("application/xml").get(new GenericType<List<CandidateDTO>>(){});
+		
+		
+		
+		assertTrue(fromServiceCandidatesAll.size() > 1 );
+		assertTrue(fromServiceCandidatesSizeOf1.size() == 1);
 		
 		
 	}
