@@ -502,7 +502,9 @@ public class CandidateResource {
   @DELETE
   @Path("all/delete")
   public void wipeAll() {
-      logger.debug("WIPING DATA");
+	  logger.debug("WIPING DATA");
+	  
+	  
       entityManager.getTransaction().begin();
       List<Candidate> candidates = entityManager.createQuery("select c from Candidate c").getResultList();
       for(Candidate c : candidates){
@@ -512,8 +514,8 @@ public class CandidateResource {
 
       List<AssessmentCenter> assesmentCenters = entityManager.createQuery("select ac from AssessmentCenter ac").getResultList();
       for(AssessmentCenter ac : assesmentCenters){
-        logger.debug("Removing Assessment Center: "+ ac.getId());
-        entityManager.remove(ac);
+    	  logger.debug("Removing Assessment Center: "+ ac.getId());
+    	  entityManager.remove(ac);
       }
 
       List<Address> addresses= entityManager.createQuery("select ad from Address ad").getResultList();

@@ -64,7 +64,7 @@ public class Candidate {
     @Enumerated
     private Gender gender;
     
-    @ManyToOne(cascade= {CascadeType.PERSIST, CascadeType.REMOVE})
+    @ManyToOne(cascade= {CascadeType.PERSIST})
     @JoinColumn(name="ADDRESSID", nullable=true)
     private Address address;
     

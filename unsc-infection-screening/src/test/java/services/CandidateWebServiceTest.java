@@ -187,7 +187,7 @@ public class CandidateWebServiceTest{
 	}
 	
 	/**
-	 * Tests that there is caching support to reduce database operations
+	 * Tests that there is caching support to reduce database operations using cache control
 	 */
 	@Test
 	public void testCachedCandidate(){
@@ -214,13 +214,10 @@ public class CandidateWebServiceTest{
 		//get cached candidate (note it is hard to test caching server side without a client browser)
 		Response response2 = client.target(CANDIDATE_URI+"/cached").request()
 				.accept("application/xml").get(Response.class);
-//		esponse response2 = client.target(CANDIDATE_URI+"/cached").request().cacheControl(arg0)
-//				.accept("application/xml").get(Response.class);
 		String etag2 = response1.getHeaderString("ETag");
 		response2.close();
 		
 		assertEquals(etag1,etag2);
-		
 	}
 	
 	/**
@@ -365,7 +362,8 @@ public class CandidateWebServiceTest{
 	}
 	
 	/**
-	 * Testing if we can retrieve a Generic Type collection (in this case, all candidates in the database)
+	 * Testing if we can retrieve a Generic Type collection (in this case, all candidates in the database) 
+	 * Using query parameters
 	 */
 	
 	@Test
@@ -396,8 +394,8 @@ public class CandidateWebServiceTest{
 		
 		
 		
-		assertTrue(fromServiceCandidatesAll.size() > 1 );
-		assertTrue(fromServiceCandidatesSizeOf1.size() == 1);
+		assertTrue(fromServiceCandidatesAll.size() > 1 ); //without parameter
+		assertTrue(fromServiceCandidatesSizeOf1.size() == 1); //with query parameter
 		
 		
 	}

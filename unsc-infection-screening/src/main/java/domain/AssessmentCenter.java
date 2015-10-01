@@ -40,7 +40,7 @@ public class AssessmentCenter {
 		private Boolean quarantineCapability;
 	    
 	    @ManyToOne(cascade= {CascadeType.PERSIST})
-	    @JoinColumn(name="ADDRESSID", nullable=false)
+	    @JoinColumn(name="ADDRESSID", nullable=true)
 	    @XmlElement(name="address")
 	    private Address assessmentCenterAddress;
 	    
