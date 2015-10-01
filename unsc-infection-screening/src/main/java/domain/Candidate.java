@@ -74,7 +74,7 @@ public class Candidate {
     
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(name="CANDIDATE_STATUS")
-	List<ClinicalStatus> statusLog = new ArrayList<ClinicalStatus>();
+	private List<ClinicalStatus> statusLog = new ArrayList<ClinicalStatus>();
     
     @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     @CollectionTable(name="ASSESSMENTS")

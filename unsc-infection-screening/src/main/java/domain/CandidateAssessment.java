@@ -72,7 +72,7 @@ public class CandidateAssessment implements Comparable<CandidateAssessment> {
     @ManyToOne(fetch=FetchType.EAGER)
     @JoinColumn(name="CANDIDATEID")
     @XmlTransient
-    Candidate candidate;
+    private Candidate candidate;
 
 
 	@Column(name="ASSESSMENTDATE", nullable=false)
